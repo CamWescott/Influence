@@ -11,10 +11,11 @@
 //   3. Add your hosting domain(s) to the Authorized domains list.
 
 window.WANDERLUST_FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyAyYKj_8JnYdDVQR5hAviG12ocCMeFRkMM",
+  authDomain:        "influencer-60be2.firebaseapp.com",
+  projectId:         "influencer-60be2",
+  storageBucket:     "influencer-60be2.firebasestorage.app",
+  messagingSenderId: "136748749264",
+  appId:             "1:136748749264:web:ed695658249be3aa7ea9d5",
+  measurementId:     "G-FW26TEJTFX"
 };
