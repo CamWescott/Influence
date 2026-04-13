@@ -39,6 +39,22 @@
     render();
   }
 
+  // Builds the CSS-style filter string that Canvas2D supports.
+  // Warmth: positive adds sepia for warm tones; negative simulates cool
+  // tones by rotating hue toward blue.
+  function buildFilterString(b, c, s, w, bl) {
+    const sepia = w > 0 ? w : 0;
+    const hueRotate = w < 0 ? Math.abs(w) * 2 : 0;
+    return (
+      "brightness(" + b + "%) " +
+      "contrast(" + c + "%) " +
+      "saturate(" + s + "%) " +
+      "sepia(" + sepia + "%) " +
+      "hue-rotate(" + hueRotate + "deg) " +
+      "blur(" + bl + "px)"
+    );
+  }
+
   function render() {
     if (!originalImage) return;
     const b = sliders.brightness.value;
@@ -47,17 +63,7 @@
     const w = parseInt(sliders.warmth.value, 10);
     const bl = sliders.blur.value;
 
-    // Warmth: sepia adds yellow/red; negative warmth gets simulated with hue-rotate.
-    const sepia = w > 0 ? w : 0;
-    const hueRotate = w < 0 ? Math.abs(w) * 2 : 0;
-
-    ctx.filter =
-      "brightness(" + b + "%) " +
-      "contrast(" + c + "%) " +
-      "saturate(" + s + "%) " +
-      "sepia(" + sepia + "%) " +
-      "hue-rotate(" + hueRotate + "deg) " +
-      "blur(" + bl + "px)";
+    ctx.filter = buildFilterString(b, c, s, w, bl);
 
     // Fit image into canvas preserving aspect ratio.
     const maxW = 800;
@@ -71,6 +77,38 @@
     ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
   }
 
+  // Paint every filter's preview onto its own thumbnail canvas, so users
+  // can eyeball all 8 options side-by-side against their actual photo
+  // before committing to one.
+  function renderFilterThumbnails() {
+    if (!originalImage) return;
+    document.querySelectorAll(".filter-btn").forEach(function (btn) {
+      const name = btn.dataset.filter;
+      const p = FILTERS[name] || FILTERS.none;
+      const thumbCanvas = btn.querySelector(".filter-thumb");
+      if (!thumbCanvas) return;
+      thumbCanvas.classList.remove("empty");
+
+      const tctx = thumbCanvas.getContext("2d");
+      const tw = thumbCanvas.width;
+      const th = thumbCanvas.height;
+
+      tctx.filter = buildFilterString(p.b, p.c, p.s, p.w, p.bl);
+
+      // Cover-fit the image into the thumbnail so it never looks stretched.
+      const iw = originalImage.width;
+      const ih = originalImage.height;
+      const scale = Math.max(tw / iw, th / ih);
+      const dw = iw * scale;
+      const dh = ih * scale;
+      const dx = (tw - dw) / 2;
+      const dy = (th - dh) / 2;
+
+      tctx.clearRect(0, 0, tw, th);
+      tctx.drawImage(originalImage, dx, dy, dw, dh);
+    });
+  }
+
   function loadFile(file) {
     if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
@@ -81,12 +119,20 @@
         canvas.classList.add("loaded");
         if (emptyMsg) emptyMsg.style.display = "none";
         applyPreset("none");
+        renderFilterThumbnails();
         suggestEdits(img);
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
+
+  // Before any photo is loaded, mark the thumbnail canvases with an empty
+  // class so the CSS placeholder (diagonal hatch on a blue gradient) shows
+  // up instead of a blank white box.
+  document.querySelectorAll(".filter-thumb").forEach(function (t) {
+    t.classList.add("empty");
+  });
 
   // Look at average brightness / color balance to suggest edits.
   function suggestEdits(img) {

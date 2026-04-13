@@ -452,20 +452,49 @@ h1, h2, h3 {
 .filter-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 .filter-btn {
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px 6px 8px;
   border-radius: var(--radius-sm);
   border: 2px solid rgba(10, 35, 64, 0.1);
   background: var(--sky-soft);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ocean-deep);
+  cursor: pointer;
   transition: all 0.15s;
 }
-.filter-btn:hover { background: var(--sky); }
-.filter-btn.active { background: var(--ocean-light); color: white; border-color: var(--ocean-deep); }
+.filter-btn:hover {
+  background: var(--sky);
+  transform: translateY(-1px);
+}
+.filter-btn.active {
+  background: var(--ocean-light);
+  color: white;
+  border-color: var(--ocean-deep);
+  box-shadow: 0 4px 10px rgba(30, 96, 145, 0.3);
+}
+.filter-btn .filter-thumb {
+  width: 100%;
+  height: 56px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #cfefff 0%, #8ed3f7 100%);
+  display: block;
+}
+.filter-btn .filter-thumb.empty {
+  background:
+    repeating-linear-gradient(45deg, rgba(10, 35, 64, 0.05) 0 6px, transparent 6px 12px),
+    linear-gradient(135deg, #cfefff 0%, #8ed3f7 100%);
+}
+.filter-btn span {
+  text-align: center;
+  letter-spacing: 0.3px;
+}
 
 .slider {
   display: block;
