@@ -1352,3 +1352,71 @@ h1, h2, h3 {
   color: var(--ocean-deep);
   cursor: pointer;
 }
+
+/* =========================================================
+   BACKGROUND MUSIC CARD (shared by photos + videos panels)
+   ========================================================= */
+.music-card {
+  margin-top: 20px;
+  background: var(--white);
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--ocean-light);
+}
+.music-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.music-head h3 {
+  margin: 0;
+  color: var(--ocean-deep);
+  font-size: 17px;
+}
+.music-status {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.music-status.playing {
+  color: var(--ocean);
+}
+.music-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.music-prompt {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid rgba(10, 35, 64, 0.12);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--cream);
+}
+.music-prompt:focus {
+  outline: none;
+  border-color: var(--ocean-light);
+}
+.music-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.music-controls .btn { padding: 9px 14px; font-size: 13px; }
+.music-vol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+  flex: 1;
+  min-width: 130px;
+}
+.music-vol input[type="range"] { flex: 1; }

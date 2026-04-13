@@ -138,6 +138,23 @@
         <p class="muted tiny">Click any photo to edit it. Each slide keeps its own filter &amp; caption.</p>
       </div>
 
+      <!-- Background music generator (photos / slideshow) -->
+      <div class="music-card">
+        <div class="music-head">
+          <h3>&#127925; Background Music</h3>
+          <span class="music-status muted" id="photoMusicStatus">Not playing</span>
+        </div>
+        <div class="music-body">
+          <input type="text" class="music-prompt" id="photoMusicPrompt"
+            placeholder="e.g. &ldquo;jazz&rdquo;, &ldquo;tropical vibes&rdquo;, &ldquo;Lion King themed&rdquo;&hellip;" />
+          <div class="music-controls">
+            <button class="btn btn-primary" id="photoMusicPlay">&#9654; Generate &amp; Play</button>
+            <button class="btn btn-secondary" id="photoMusicStop">&#9632; Stop</button>
+            <label class="music-vol">&#128266; <input type="range" id="photoMusicVol" min="0" max="1" step="0.05" value="0.7" /></label>
+          </div>
+        </div>
+      </div>
+
       <div class="slideshow-modal" id="slideshowModal">
         <button class="slideshow-close" id="slideshowClose" title="Close">&#10005;</button>
         <button class="slideshow-nav prev" id="slideshowPrev" title="Previous">&#10094;</button>
@@ -279,6 +296,23 @@
           </div>
         </div>
       </div>
+
+      <!-- Background music generator (videos) -->
+      <div class="music-card">
+        <div class="music-head">
+          <h3>&#127925; Background Music</h3>
+          <span class="music-status muted" id="videoMusicStatus">Not playing</span>
+        </div>
+        <div class="music-body">
+          <input type="text" class="music-prompt" id="videoMusicPrompt"
+            placeholder="e.g. &ldquo;techno&rdquo;, &ldquo;low somber music&rdquo;, &ldquo;Lion King themed music&rdquo;&hellip;" />
+          <div class="music-controls">
+            <button class="btn btn-primary" id="videoMusicPlay">&#9654; Generate &amp; Play</button>
+            <button class="btn btn-secondary" id="videoMusicStop">&#9632; Stop</button>
+            <label class="music-vol">&#128266; <input type="range" id="videoMusicVol" min="0" max="1" step="0.05" value="0.7" /></label>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- =================== BLOG =================== -->
@@ -370,6 +404,7 @@
   <script src="js/auth.js"></script>
   <script src="js/photo-editor.js"></script>
   <script src="js/video-editor.js"></script>
+  <script src="js/music-gen.js"></script>
   <script src="js/blog-generator.js"></script>
   <script src="js/social-posts.js"></script>
   <script src="js/app.js"></script>
