@@ -201,7 +201,15 @@
         '<div class="bl-cloud c2"></div>' +
         '<div class="bl-cloud c3"></div>' +
         '<div class="bl-waves"></div>' +
-        '<div class="bl-ship">\uD83D\uDEF3\uFE0F</div>' +
+        '<div class="bl-ship">' +
+          '<div class="bl-ship-flag"></div>' +
+          '<div class="bl-ship-stack s1"></div>' +
+          '<div class="bl-ship-stack s2"></div>' +
+          '<div class="bl-ship-stack s3"></div>' +
+          '<div class="bl-ship-bridge"></div>' +
+          '<div class="bl-ship-deck"></div>' +
+          '<div class="bl-ship-hull"></div>' +
+        '</div>' +
         '<div class="bl-text">' +
           '<strong id="blogLoadStatus">Boarding the ship</strong>' +
           '<span>Claude is writing your travel blog. This usually takes 15\u201330 seconds.</span>' +

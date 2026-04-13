@@ -722,13 +722,87 @@ h1, h2, h3 {
    the vertical bob, so the two don't step on each other. */
 .blog-loading .bl-ship {
   position: absolute;
-  bottom: 88px;
-  left: -15%;
-  font-size: 76px;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35));
+  bottom: 90px;
+  left: -20%;
+  width: 200px;
+  height: 104px;
+  filter: drop-shadow(0 8px 10px rgba(10, 35, 64, 0.4));
   animation:
     bl-sail 12s linear infinite,
     bl-bob 3s ease-in-out infinite;
+}
+.blog-loading .bl-ship-hull {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  height: 38px;
+  background: linear-gradient(180deg, #12325a 0%, #0c2340 100%);
+  border-radius: 0 0 60px 60px / 0 0 34px 34px;
+}
+.blog-loading .bl-ship-hull::after {
+  /* waterline stripe */
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  right: 8px;
+  height: 3px;
+  background: #e8b84a;
+  border-radius: 2px;
+}
+.blog-loading .bl-ship-deck {
+  position: absolute;
+  bottom: 32px;
+  left: 18px;
+  width: 164px;
+  height: 36px;
+  background: #ffffff;
+  border-radius: 8px 8px 0 0;
+  box-shadow: inset 0 -6px 0 #e6ecf2;
+}
+.blog-loading .bl-ship-deck::before {
+  /* row of portholes */
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 10px;
+  right: 10px;
+  height: 8px;
+  background:
+    radial-gradient(circle at 4px 4px, #3aa8d8 0 3px, transparent 3.5px) repeat-x;
+  background-size: 14px 8px;
+}
+.blog-loading .bl-ship-bridge {
+  position: absolute;
+  bottom: 68px;
+  left: 40px;
+  width: 120px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 6px 6px 0 0;
+  box-shadow: inset 0 -3px 0 #e6ecf2;
+}
+.blog-loading .bl-ship-stack {
+  position: absolute;
+  bottom: 82px;
+  width: 18px;
+  height: 22px;
+  background: #ff6b6b;
+  border-radius: 3px 3px 0 0;
+  border-top: 3px solid #0c2340;
+}
+.blog-loading .bl-ship-stack.s1 { left: 56px; }
+.blog-loading .bl-ship-stack.s2 { left: 92px; }
+.blog-loading .bl-ship-stack.s3 { left: 128px; }
+.blog-loading .bl-ship-flag {
+  position: absolute;
+  bottom: 100px;
+  left: 98px;
+  width: 10px;
+  height: 7px;
+  background: #ffd447;
+  border-left: 2px solid #0c2340;
 }
 @keyframes bl-sail {
   0%   { left: -15%; }
