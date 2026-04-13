@@ -35,11 +35,11 @@
 
       <div class="photo-layout">
         <div class="upload-zone" id="photoDrop">
-          <input type="file" id="photoInput" accept="image/*" hidden />
+          <input type="file" id="photoInput" accept="image/*" multiple hidden />
           <div class="upload-inner">
             <div class="upload-ic">&#127956;</div>
-            <p><strong>Drop a photo</strong> or click to upload</p>
-            <span class="muted">JPG, PNG, WEBP</span>
+            <p><strong>Drop photos</strong> or click to upload</p>
+            <span class="muted">JPG, PNG, WEBP &mdash; pick multiple for a slideshow</span>
           </div>
         </div>
 
@@ -73,11 +73,65 @@
           <label class="slider">Warmth <input type="range" id="warmth" min="-50" max="50" value="0" /></label>
           <label class="slider">Blur <input type="range" id="blur" min="0" max="10" value="0" /></label>
 
+          <h3>Text Overlay</h3>
+          <input type="text" id="photoText" class="text-input" placeholder="Add a caption&hellip;" />
+          <div class="text-controls">
+            <label class="mini">Font
+              <select id="photoTextFont">
+                <option value="'Baloo 2', cursive">Display</option>
+                <option value="'Quicksand', sans-serif">Clean</option>
+                <option value="Georgia, 'Times New Roman', serif">Serif</option>
+                <option value="Impact, 'Arial Black', sans-serif">Bold</option>
+                <option value="'Courier New', monospace">Mono</option>
+              </select>
+            </label>
+            <label class="mini">Size <input type="range" id="photoTextSize" min="16" max="120" value="48" /></label>
+            <label class="mini">Color <input type="color" id="photoTextColor" value="#ffffff" /></label>
+          </div>
+          <div class="text-style-row">
+            <button class="text-style-btn active" data-style="shadow">Shadow</button>
+            <button class="text-style-btn" data-style="outline">Outline</button>
+            <button class="text-style-btn" data-style="banner">Banner</button>
+            <button class="text-style-btn" data-style="plain">Plain</button>
+          </div>
+          <div class="text-pos-grid">
+            <button class="text-pos-btn" data-pos="0.1,0.12" title="Top left">&#8598;</button>
+            <button class="text-pos-btn" data-pos="0.5,0.12" title="Top">&#8593;</button>
+            <button class="text-pos-btn" data-pos="0.9,0.12" title="Top right">&#8599;</button>
+            <button class="text-pos-btn" data-pos="0.1,0.5" title="Left">&#8592;</button>
+            <button class="text-pos-btn" data-pos="0.5,0.5" title="Center">&#9679;</button>
+            <button class="text-pos-btn" data-pos="0.9,0.5" title="Right">&#8594;</button>
+            <button class="text-pos-btn" data-pos="0.1,0.88" title="Bottom left">&#8601;</button>
+            <button class="text-pos-btn" data-pos="0.5,0.88" title="Bottom">&#8595;</button>
+            <button class="text-pos-btn" data-pos="0.9,0.88" title="Bottom right">&#8600;</button>
+          </div>
+          <p class="muted tiny">Tip: drag the caption directly on the photo to reposition it.</p>
+
           <div class="photo-actions">
             <button class="btn btn-secondary" id="photoReset">Reset</button>
             <button class="btn btn-primary" id="photoDownload">Download</button>
           </div>
         </aside>
+      </div>
+
+      <div class="slideshow-bar">
+        <div class="slideshow-head">
+          <h3>&#127916; Slideshow Deck <span id="deckCount" class="muted">0 photos</span></h3>
+          <div class="slideshow-actions">
+            <button class="btn btn-secondary" id="addSlideBtn">+ Add photos</button>
+            <button class="btn btn-primary" id="playSlideshowBtn" disabled>&#9658; Play slideshow</button>
+          </div>
+        </div>
+        <div class="slide-deck" id="slideDeck"></div>
+        <p class="muted tiny">Click any photo to edit it. Each slide keeps its own filter &amp; caption.</p>
+      </div>
+
+      <div class="slideshow-modal" id="slideshowModal">
+        <button class="slideshow-close" id="slideshowClose" title="Close">&#10005;</button>
+        <button class="slideshow-nav prev" id="slideshowPrev" title="Previous">&#10094;</button>
+        <canvas id="slideshowCanvas"></canvas>
+        <button class="slideshow-nav next" id="slideshowNext" title="Next">&#10095;</button>
+        <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
       </div>
     </section>
 

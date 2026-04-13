@@ -512,6 +512,287 @@ h1, h2, h3 {
 }
 .photo-actions .btn { flex: 1; padding: 10px; font-size: 13px; }
 
+#photoCanvas.loaded { cursor: grab; }
+#photoCanvas.dragging { cursor: grabbing; }
+
+/* ---------- Text overlay controls ---------- */
+.text-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 2px solid rgba(10, 35, 64, 0.12);
+  background: var(--cream);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--ocean-light);
+}
+.text-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.text-controls .mini {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.text-controls .mini:first-child { grid-column: 1 / -1; }
+.text-controls select,
+.text-controls input[type="range"],
+.text-controls input[type="color"] {
+  width: 100%;
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(10, 35, 64, 0.15);
+  background: white;
+}
+.text-controls input[type="color"] {
+  height: 30px;
+  padding: 2px;
+  cursor: pointer;
+}
+.text-style-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.text-style-btn {
+  padding: 6px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 2px solid rgba(10, 35, 64, 0.1);
+  background: var(--sky-soft);
+  color: var(--ocean-deep);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.text-style-btn:hover { background: var(--sky); }
+.text-style-btn.active {
+  background: var(--ocean-light);
+  color: white;
+  border-color: var(--ocean-deep);
+}
+.text-pos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  max-width: 140px;
+  margin: 6px 0 8px;
+}
+.text-pos-btn {
+  aspect-ratio: 1;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid rgba(10, 35, 64, 0.15);
+  background: white;
+  color: var(--ocean-deep);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.text-pos-btn:hover {
+  background: var(--sky);
+  border-color: var(--ocean-light);
+}
+.tiny { font-size: 11px; margin: 2px 0 0; }
+
+/* ---------- Slideshow deck strip ---------- */
+.slideshow-bar {
+  margin-top: 20px;
+  background: white;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.slideshow-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.slideshow-head h3 {
+  margin: 0;
+  color: var(--ocean-deep);
+  font-size: 17px;
+}
+.slideshow-head h3 .muted {
+  font-weight: 500;
+  font-size: 13px;
+  margin-left: 8px;
+}
+.slideshow-actions { display: flex; gap: 8px; }
+.slideshow-actions .btn { padding: 8px 14px; font-size: 13px; }
+.slideshow-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.slide-deck {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 2px 14px;
+  min-height: 110px;
+  align-items: center;
+  scroll-behavior: smooth;
+}
+.slide-deck:empty::before {
+  content: "Your slideshow photos will show up here.";
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 13px;
+  padding: 18px;
+}
+.slide-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 140px;
+  height: 90px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid transparent;
+  box-shadow: 0 4px 10px rgba(10, 61, 98, 0.15);
+  transition: transform 0.15s, border-color 0.15s;
+}
+.slide-thumb:hover { transform: translateY(-2px); }
+.slide-thumb canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.slide-thumb.active {
+  border-color: var(--sun);
+  box-shadow: 0 6px 16px rgba(244, 162, 89, 0.5);
+}
+.slide-num {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(10, 35, 64, 0.7);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+.slide-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 107, 107, 0.9);
+  color: white;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.12s;
+}
+.slide-del:hover {
+  background: var(--coral);
+  transform: scale(1.1);
+}
+
+/* ---------- Slideshow modal ---------- */
+.slideshow-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 35, 64, 0.92);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+.slideshow-modal.open { display: flex; }
+#slideshowCanvas {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  background: #000;
+}
+#slideshowCanvas.fade-in {
+  animation: slideFadeIn 0.5s ease-out;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.slideshow-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.slideshow-close:hover { background: rgba(255, 255, 255, 0.3); }
+.slideshow-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+.slideshow-nav:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.08);
+}
+.slideshow-nav.prev { left: 24px; }
+.slideshow-nav.next { right: 24px; }
+.slideshow-counter {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+@media (max-width: 700px) {
+  .slideshow-nav { width: 42px; height: 42px; font-size: 18px; }
+  .slideshow-nav.prev { left: 10px; }
+  .slideshow-nav.next { right: 10px; }
+}
+
 /* =========================================================
    VIDEOS PANEL
    ========================================================= */

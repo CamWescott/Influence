@@ -1,4 +1,6 @@
-// Photo editor: Canvas-based with filters, adjustments, and AI-suggested edits.
+// Photo editor: Canvas-based with filters, adjustments, text overlay, and
+// a slide deck so users can build a multi-photo slideshow — each slide
+// keeps its own filter settings and caption.
 (function () {
   const drop = document.getElementById("photoDrop");
   const input = document.getElementById("photoInput");
@@ -15,8 +17,23 @@
     blur: document.getElementById("blur"),
   };
 
-  let originalImage = null;
-  let activeFilter = "none";
+  // Text overlay controls
+  const textEl = document.getElementById("photoText");
+  const textFontEl = document.getElementById("photoTextFont");
+  const textSizeEl = document.getElementById("photoTextSize");
+  const textColorEl = document.getElementById("photoTextColor");
+
+  // Slideshow deck
+  const deckEl = document.getElementById("slideDeck");
+  const deckCountEl = document.getElementById("deckCount");
+  const addSlideBtn = document.getElementById("addSlideBtn");
+  const playBtn = document.getElementById("playSlideshowBtn");
+  const modalEl = document.getElementById("slideshowModal");
+  const modalCanvas = document.getElementById("slideshowCanvas");
+  const modalClose = document.getElementById("slideshowClose");
+  const modalCounter = document.getElementById("slideshowCounter");
+  const modalPrev = document.getElementById("slideshowPrev");
+  const modalNext = document.getElementById("slideshowNext");
 
   const FILTERS = {
     none:     { b: 100, c: 100, s: 100, w: 0,   bl: 0 },
@@ -29,62 +46,144 @@
     dreamy:   { b: 112, c: 95,  s: 110, w: 8,   bl: 1 },
   };
 
-  function applyPreset(name) {
-    const p = FILTERS[name] || FILTERS.none;
-    sliders.brightness.value = p.b;
-    sliders.contrast.value   = p.c;
-    sliders.saturation.value = p.s;
-    sliders.warmth.value     = p.w;
-    sliders.blur.value       = p.bl;
-    render();
+  // One entry per photo in the deck. Each slide remembers its own filter
+  // and caption so clicking between slides restores their state.
+  let slides = [];
+  let activeIndex = 0;
+
+  function defaultText() {
+    return {
+      content: "",
+      font: "'Baloo 2', cursive",
+      size: 48,      // pixels at a reference canvas height of 500px
+      color: "#ffffff",
+      x: 0.5,        // 0..1 fraction of width
+      y: 0.88,       // 0..1 fraction of height
+      style: "shadow",
+    };
+  }
+
+  function makeSlide(image) {
+    return {
+      image,
+      preset: "none",
+      filter: { b: 100, c: 100, s: 100, w: 0, bl: 0 },
+      text: defaultText(),
+    };
+  }
+
+  function activeSlide() {
+    return slides[activeIndex] || null;
   }
 
   // Builds the CSS-style filter string that Canvas2D supports.
   // Warmth: positive adds sepia for warm tones; negative simulates cool
   // tones by rotating hue toward blue.
-  function buildFilterString(b, c, s, w, bl) {
-    const sepia = w > 0 ? w : 0;
-    const hueRotate = w < 0 ? Math.abs(w) * 2 : 0;
+  function buildFilterString(f) {
+    const sepia = f.w > 0 ? f.w : 0;
+    const hueRotate = f.w < 0 ? Math.abs(f.w) * 2 : 0;
     return (
-      "brightness(" + b + "%) " +
-      "contrast(" + c + "%) " +
-      "saturate(" + s + "%) " +
+      "brightness(" + f.b + "%) " +
+      "contrast(" + f.c + "%) " +
+      "saturate(" + f.s + "%) " +
       "sepia(" + sepia + "%) " +
       "hue-rotate(" + hueRotate + "deg) " +
-      "blur(" + bl + "px)"
+      "blur(" + f.bl + "px)"
     );
   }
 
+  // Draw the caption onto a canvas. Size is normalized against a
+  // reference canvas height of 500px so text looks the same on the
+  // editor, the slideshow viewer, and the downloaded full-resolution
+  // image.
+  function drawText(targetCtx, text, w, h) {
+    if (!text || !text.content) return;
+    const size = Math.max(8, text.size * (h / 500));
+    targetCtx.save();
+    targetCtx.font = "700 " + size + "px " + text.font;
+    targetCtx.textAlign = "center";
+    targetCtx.textBaseline = "middle";
+    const x = text.x * w;
+    const y = text.y * h;
+
+    if (text.style === "shadow") {
+      targetCtx.shadowColor = "rgba(0,0,0,0.75)";
+      targetCtx.shadowBlur = Math.max(4, size * 0.18);
+      targetCtx.shadowOffsetX = 0;
+      targetCtx.shadowOffsetY = Math.max(1, size * 0.05);
+      targetCtx.fillStyle = text.color;
+      targetCtx.fillText(text.content, x, y);
+    } else if (text.style === "outline") {
+      targetCtx.lineWidth = Math.max(3, size * 0.08);
+      targetCtx.strokeStyle = "#000";
+      targetCtx.lineJoin = "round";
+      targetCtx.strokeText(text.content, x, y);
+      targetCtx.fillStyle = text.color;
+      targetCtx.fillText(text.content, x, y);
+    } else if (text.style === "banner") {
+      const metrics = targetCtx.measureText(text.content);
+      const pad = size * 0.35;
+      const bw = metrics.width + pad * 2;
+      const bh = size + pad * 2;
+      targetCtx.fillStyle = "rgba(10, 35, 64, 0.55)";
+      roundRect(targetCtx, x - bw / 2, y - bh / 2, bw, bh, pad * 0.5);
+      targetCtx.fill();
+      targetCtx.fillStyle = text.color;
+      targetCtx.fillText(text.content, x, y);
+    } else {
+      targetCtx.fillStyle = text.color;
+      targetCtx.fillText(text.content, x, y);
+    }
+    targetCtx.restore();
+  }
+
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
   function render() {
-    if (!originalImage) return;
-    const b = sliders.brightness.value;
-    const c = sliders.contrast.value;
-    const s = sliders.saturation.value;
-    const w = parseInt(sliders.warmth.value, 10);
-    const bl = sliders.blur.value;
+    const slide = activeSlide();
+    if (!slide) {
+      canvas.classList.remove("loaded");
+      if (emptyMsg) emptyMsg.style.display = "";
+      return;
+    }
+    canvas.classList.add("loaded");
+    if (emptyMsg) emptyMsg.style.display = "none";
 
     // Fit image into canvas preserving aspect ratio.
     const maxW = 800;
     const maxH = 500;
-    const iw = originalImage.width;
-    const ih = originalImage.height;
+    const iw = slide.image.width;
+    const ih = slide.image.height;
     const scale = Math.min(maxW / iw, maxH / ih, 1);
     canvas.width = Math.round(iw * scale);
     canvas.height = Math.round(ih * scale);
 
     // IMPORTANT: setting canvas.width/height above resets all context
     // state (including ctx.filter), so we must apply the filter AFTER
-    // the resize, not before, otherwise nothing gets applied to the image.
-    ctx.filter = buildFilterString(b, c, s, w, bl);
+    // the resize, not before.
+    ctx.filter = buildFilterString(slide.filter);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(slide.image, 0, 0, canvas.width, canvas.height);
+
+    // Text overlay is drawn with no filter so the caption stays sharp.
+    ctx.filter = "none";
+    drawText(ctx, slide.text, canvas.width, canvas.height);
   }
 
-  // Paint every filter's preview onto its own thumbnail canvas, so users
-  // can eyeball all 8 options side-by-side against their actual photo
-  // before committing to one.
+  // Paint every filter's preview onto its own thumbnail canvas using the
+  // currently-active slide's image, so users can eyeball all 8 options
+  // side-by-side against their actual photo.
   function renderFilterThumbnails() {
-    if (!originalImage) return;
+    const slide = activeSlide();
+    if (!slide) return;
     document.querySelectorAll(".filter-btn").forEach(function (btn) {
       const name = btn.dataset.filter;
       const p = FILTERS[name] || FILTERS.none;
@@ -96,11 +195,11 @@
       const tw = thumbCanvas.width;
       const th = thumbCanvas.height;
 
-      tctx.filter = buildFilterString(p.b, p.c, p.s, p.w, p.bl);
+      tctx.filter = buildFilterString(p);
 
       // Cover-fit the image into the thumbnail so it never looks stretched.
-      const iw = originalImage.width;
-      const ih = originalImage.height;
+      const iw = slide.image.width;
+      const ih = slide.image.height;
       const scale = Math.max(tw / iw, th / ih);
       const dw = iw * scale;
       const dh = ih * scale;
@@ -108,26 +207,179 @@
       const dy = (th - dh) / 2;
 
       tctx.clearRect(0, 0, tw, th);
-      tctx.drawImage(originalImage, dx, dy, dw, dh);
+      tctx.drawImage(slide.image, dx, dy, dw, dh);
     });
   }
 
-  function loadFile(file) {
-    if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const img = new Image();
-      img.onload = function () {
-        originalImage = img;
-        canvas.classList.add("loaded");
-        if (emptyMsg) emptyMsg.style.display = "none";
-        applyPreset("none");
+  // Slide deck strip below the main stage. Re-rendered on any change so
+  // thumbnails always reflect the latest filter + text state.
+  function renderDeck() {
+    if (!deckEl) return;
+    deckEl.innerHTML = "";
+
+    slides.forEach(function (slide, i) {
+      const wrap = document.createElement("div");
+      wrap.className = "slide-thumb" + (i === activeIndex ? " active" : "");
+
+      const tc = document.createElement("canvas");
+      tc.width = 140;
+      tc.height = 90;
+      const tctx = tc.getContext("2d");
+
+      // Cover-fit image with its filter.
+      const iw = slide.image.width;
+      const ih = slide.image.height;
+      const scale = Math.max(tc.width / iw, tc.height / ih);
+      const dw = iw * scale;
+      const dh = ih * scale;
+      const dx = (tc.width - dw) / 2;
+      const dy = (tc.height - dh) / 2;
+      tctx.filter = buildFilterString(slide.filter);
+      tctx.drawImage(slide.image, dx, dy, dw, dh);
+      tctx.filter = "none";
+
+      // Draw a mini version of the caption so the thumb previews text too.
+      if (slide.text.content) {
+        drawText(tctx, slide.text, tc.width, tc.height);
+      }
+
+      wrap.appendChild(tc);
+
+      const label = document.createElement("span");
+      label.className = "slide-num";
+      label.textContent = i + 1;
+      wrap.appendChild(label);
+
+      const del = document.createElement("button");
+      del.className = "slide-del";
+      del.type = "button";
+      del.title = "Remove";
+      del.textContent = "\u00d7";
+      del.addEventListener("click", function (e) {
+        e.stopPropagation();
+        removeSlide(i);
+      });
+      wrap.appendChild(del);
+
+      wrap.addEventListener("click", function () {
+        if (activeIndex === i) return;
+        activeIndex = i;
+        syncControls();
+        render();
         renderFilterThumbnails();
-        suggestEdits(img);
+        renderDeck();
+      });
+
+      deckEl.appendChild(wrap);
+    });
+
+    if (deckCountEl) {
+      deckCountEl.textContent =
+        slides.length + " photo" + (slides.length === 1 ? "" : "s");
+    }
+    if (playBtn) playBtn.disabled = slides.length < 2;
+  }
+
+  function removeSlide(i) {
+    slides.splice(i, 1);
+    if (slides.length === 0) {
+      activeIndex = 0;
+      canvas.classList.remove("loaded");
+      if (emptyMsg) emptyMsg.style.display = "";
+      if (suggestionsBox) {
+        suggestionsBox.innerHTML =
+          '<p class="muted small">Upload a photo to see AI suggestions.</p>';
+      }
+      // Reset filter thumbs to the empty hatched state.
+      document.querySelectorAll(".filter-thumb").forEach(function (t) {
+        t.classList.add("empty");
+        const c = t.getContext("2d");
+        c.clearRect(0, 0, t.width, t.height);
+      });
+      document
+        .querySelectorAll(".filter-btn")
+        .forEach((b) => b.classList.remove("active"));
+      // Reset text input too.
+      if (textEl) textEl.value = "";
+    } else {
+      if (activeIndex >= slides.length) activeIndex = slides.length - 1;
+      syncControls();
+      render();
+      renderFilterThumbnails();
+    }
+    renderDeck();
+  }
+
+  // Push the active slide's state into the sidebar controls.
+  function syncControls() {
+    const slide = activeSlide();
+    if (!slide) return;
+    sliders.brightness.value = slide.filter.b;
+    sliders.contrast.value = slide.filter.c;
+    sliders.saturation.value = slide.filter.s;
+    sliders.warmth.value = slide.filter.w;
+    sliders.blur.value = slide.filter.bl;
+
+    if (textEl) textEl.value = slide.text.content;
+    if (textFontEl) textFontEl.value = slide.text.font;
+    if (textSizeEl) textSizeEl.value = slide.text.size;
+    if (textColorEl) textColorEl.value = slide.text.color;
+
+    document.querySelectorAll(".filter-btn").forEach((b) => {
+      b.classList.toggle("active", b.dataset.filter === slide.preset);
+    });
+    document.querySelectorAll(".text-style-btn").forEach((b) => {
+      b.classList.toggle("active", b.dataset.style === slide.text.style);
+    });
+  }
+
+  function applyPreset(name) {
+    const slide = activeSlide();
+    if (!slide) return;
+    const p = FILTERS[name] || FILTERS.none;
+    slide.preset = name;
+    slide.filter = { b: p.b, c: p.c, s: p.s, w: p.w, bl: p.bl };
+    syncControls();
+    render();
+    renderDeck();
+  }
+
+  function loadFiles(fileList) {
+    const files = Array.from(fileList || []).filter(
+      (f) => f && f.type && f.type.startsWith("image/")
+    );
+    if (files.length === 0) return;
+
+    const startedEmpty = slides.length === 0;
+    let remaining = files.length;
+    const newSlides = [];
+
+    files.forEach(function (file, idx) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          newSlides[idx] = makeSlide(img);
+          remaining--;
+          if (remaining === 0) {
+            // Preserve upload order.
+            newSlides.forEach((s) => {
+              if (s) slides.push(s);
+            });
+            activeIndex = slides.length - 1;
+            syncControls();
+            render();
+            renderFilterThumbnails();
+            renderDeck();
+            if (startedEmpty) {
+              suggestEdits(slides[activeIndex].image);
+            }
+          }
+        };
+        img.src = e.target.result;
       };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    });
   }
 
   // Before any photo is loaded, mark the thumbnail canvases with an empty
@@ -177,53 +429,307 @@
       tips.push("Lots of greens (jungle / nature shot). Try saturation ~130 and a hint of warmth.");
     }
 
-    tips.push("Straighten the horizon and crop to 4:5 for Instagram feed.");
+    tips.push("Add a short caption from the Text Overlay panel — then drag it into place on the photo.");
 
     suggestionsBox.innerHTML =
       "<ul><li>" + tips.join("</li><li>") + "</li></ul>";
   }
 
-  // ---- Event wiring ----
+  // ---- Text drag on main canvas ----
+  // If the caption has content, any mousedown on the canvas grabs the
+  // text and repositions it. Touch works the same way.
+  let dragging = false;
+
+  function pointerFraction(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (clientY - rect.top) / rect.height)),
+    };
+  }
+
+  canvas.addEventListener("mousedown", function (e) {
+    const slide = activeSlide();
+    if (!slide || !slide.text.content) return;
+    dragging = true;
+    canvas.classList.add("dragging");
+    const p = pointerFraction(e.clientX, e.clientY);
+    slide.text.x = p.x;
+    slide.text.y = p.y;
+    render();
+  });
+  window.addEventListener("mousemove", function (e) {
+    if (!dragging) return;
+    const slide = activeSlide();
+    if (!slide) return;
+    const p = pointerFraction(e.clientX, e.clientY);
+    slide.text.x = p.x;
+    slide.text.y = p.y;
+    render();
+  });
+  window.addEventListener("mouseup", function () {
+    if (!dragging) return;
+    dragging = false;
+    canvas.classList.remove("dragging");
+    renderDeck();
+  });
+  // Touch
+  canvas.addEventListener("touchstart", function (e) {
+    const slide = activeSlide();
+    if (!slide || !slide.text.content) return;
+    const t = e.touches[0];
+    dragging = true;
+    const p = pointerFraction(t.clientX, t.clientY);
+    slide.text.x = p.x;
+    slide.text.y = p.y;
+    render();
+    e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener("touchmove", function (e) {
+    if (!dragging) return;
+    const slide = activeSlide();
+    if (!slide) return;
+    const t = e.touches[0];
+    const p = pointerFraction(t.clientX, t.clientY);
+    slide.text.x = p.x;
+    slide.text.y = p.y;
+    render();
+    e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener("touchend", function () {
+    if (!dragging) return;
+    dragging = false;
+    renderDeck();
+  });
+
+  // ---- Upload wiring ----
   drop.addEventListener("click", () => input.click());
   drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
   drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
   drop.addEventListener("drop", (e) => {
     e.preventDefault();
     drop.classList.remove("drag");
-    loadFile(e.dataTransfer.files[0]);
+    loadFiles(e.dataTransfer.files);
   });
-  input.addEventListener("change", (e) => loadFile(e.target.files[0]));
+  input.addEventListener("change", (e) => {
+    loadFiles(e.target.files);
+    // Allow re-selecting the same file later.
+    e.target.value = "";
+  });
 
-  Object.values(sliders).forEach((slider) =>
-    slider.addEventListener("input", render)
-  );
+  if (addSlideBtn) {
+    addSlideBtn.addEventListener("click", () => input.click());
+  }
 
+  // ---- Slider wiring ----
+  const SLIDER_KEYS = {
+    brightness: "b",
+    contrast: "c",
+    saturation: "s",
+    warmth: "w",
+    blur: "bl",
+  };
+  Object.entries(sliders).forEach(function ([key, slider]) {
+    slider.addEventListener("input", function () {
+      const slide = activeSlide();
+      if (!slide) return;
+      slide.filter[SLIDER_KEYS[key]] = parseInt(slider.value, 10);
+      // Manual adjustment breaks the preset association.
+      slide.preset = "custom";
+      document
+        .querySelectorAll(".filter-btn")
+        .forEach((b) => b.classList.remove("active"));
+      render();
+      renderDeck();
+    });
+  });
+
+  // ---- Filter button wiring ----
   document.querySelectorAll(".filter-btn").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      activeFilter = btn.dataset.filter;
-      applyPreset(activeFilter);
-    })
+    btn.addEventListener("click", () => applyPreset(btn.dataset.filter))
   );
 
+  // ---- Text controls wiring ----
+  if (textEl) {
+    textEl.addEventListener("input", function () {
+      const slide = activeSlide();
+      if (!slide) return;
+      slide.text.content = textEl.value;
+      render();
+      renderDeck();
+    });
+  }
+  if (textFontEl) {
+    textFontEl.addEventListener("change", function () {
+      const slide = activeSlide();
+      if (!slide) return;
+      slide.text.font = textFontEl.value;
+      render();
+      renderDeck();
+    });
+  }
+  if (textSizeEl) {
+    textSizeEl.addEventListener("input", function () {
+      const slide = activeSlide();
+      if (!slide) return;
+      slide.text.size = parseInt(textSizeEl.value, 10);
+      render();
+      renderDeck();
+    });
+  }
+  if (textColorEl) {
+    textColorEl.addEventListener("input", function () {
+      const slide = activeSlide();
+      if (!slide) return;
+      slide.text.color = textColorEl.value;
+      render();
+      renderDeck();
+    });
+  }
+  document.querySelectorAll(".text-style-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const slide = activeSlide();
+      if (!slide) return;
+      document
+        .querySelectorAll(".text-style-btn")
+        .forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      slide.text.style = btn.dataset.style;
+      render();
+      renderDeck();
+    });
+  });
+  document.querySelectorAll(".text-pos-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const slide = activeSlide();
+      if (!slide) return;
+      const [x, y] = btn.dataset.pos.split(",").map(Number);
+      slide.text.x = x;
+      slide.text.y = y;
+      render();
+      renderDeck();
+    });
+  });
+
+  // ---- Reset / Download ----
   document.getElementById("photoReset").addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+    const slide = activeSlide();
+    if (!slide) return;
+    slide.text = defaultText();
     applyPreset("none");
+    renderDeck();
   });
 
   document.getElementById("photoDownload").addEventListener("click", () => {
-    if (!originalImage) return;
-    // Re-draw with filter applied to a fresh canvas to bake in the filter.
+    const slide = activeSlide();
+    if (!slide) return;
+    // Re-draw with filter + text applied at full image resolution.
     const out = document.createElement("canvas");
-    out.width = canvas.width;
-    out.height = canvas.height;
+    out.width = slide.image.width;
+    out.height = slide.image.height;
     const octx = out.getContext("2d");
-    octx.filter = ctx.filter;
-    octx.drawImage(originalImage, 0, 0, out.width, out.height);
+    octx.filter = buildFilterString(slide.filter);
+    octx.drawImage(slide.image, 0, 0, out.width, out.height);
+    octx.filter = "none";
+    drawText(octx, slide.text, out.width, out.height);
     const link = document.createElement("a");
     link.download = "wanderlust-photo.png";
     link.href = out.toDataURL("image/png");
     link.click();
   });
+
+  // ---- Slideshow player ----
+  let slideshowTimer = null;
+  let slideshowIndex = 0;
+  const SLIDE_DURATION = 3500;
+
+  function showSlideshowFrame() {
+    const slide = slides[slideshowIndex];
+    if (!slide || !modalCanvas) return;
+
+    // Fit the current slide into a container sized to the viewport.
+    const maxW = Math.min(window.innerWidth * 0.9, 1100);
+    const maxH = Math.min(window.innerHeight * 0.8, 700);
+    const iw = slide.image.width;
+    const ih = slide.image.height;
+    const scale = Math.min(maxW / iw, maxH / ih);
+    modalCanvas.width = Math.round(iw * scale);
+    modalCanvas.height = Math.round(ih * scale);
+
+    const mctx = modalCanvas.getContext("2d");
+    mctx.filter = buildFilterString(slide.filter);
+    mctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+    mctx.drawImage(slide.image, 0, 0, modalCanvas.width, modalCanvas.height);
+    mctx.filter = "none";
+    drawText(mctx, slide.text, modalCanvas.width, modalCanvas.height);
+
+    // Restart the CSS fade so each frame gets a soft crossfade.
+    modalCanvas.classList.remove("fade-in");
+    // Force reflow so the animation actually retriggers.
+    void modalCanvas.offsetWidth;
+    modalCanvas.classList.add("fade-in");
+
+    if (modalCounter) {
+      modalCounter.textContent =
+        slideshowIndex + 1 + " / " + slides.length;
+    }
+  }
+
+  function advanceSlideshow(delta) {
+    slideshowIndex = (slideshowIndex + delta + slides.length) % slides.length;
+    showSlideshowFrame();
+  }
+
+  function playSlideshow() {
+    if (slides.length < 2 || !modalEl) return;
+    modalEl.classList.add("open");
+    slideshowIndex = 0;
+    showSlideshowFrame();
+    if (slideshowTimer) clearInterval(slideshowTimer);
+    slideshowTimer = setInterval(() => advanceSlideshow(1), SLIDE_DURATION);
+  }
+
+  function stopSlideshow() {
+    if (slideshowTimer) {
+      clearInterval(slideshowTimer);
+      slideshowTimer = null;
+    }
+    if (modalEl) modalEl.classList.remove("open");
+  }
+
+  if (playBtn) playBtn.addEventListener("click", playSlideshow);
+  if (modalClose) modalClose.addEventListener("click", stopSlideshow);
+  if (modalPrev) {
+    modalPrev.addEventListener("click", () => {
+      if (slideshowTimer) {
+        clearInterval(slideshowTimer);
+        slideshowTimer = setInterval(() => advanceSlideshow(1), SLIDE_DURATION);
+      }
+      advanceSlideshow(-1);
+    });
+  }
+  if (modalNext) {
+    modalNext.addEventListener("click", () => {
+      if (slideshowTimer) {
+        clearInterval(slideshowTimer);
+        slideshowTimer = setInterval(() => advanceSlideshow(1), SLIDE_DURATION);
+      }
+      advanceSlideshow(1);
+    });
+  }
+  // Click outside the canvas or press Esc to close.
+  if (modalEl) {
+    modalEl.addEventListener("click", (e) => {
+      if (e.target === modalEl) stopSlideshow();
+    });
+  }
+  document.addEventListener("keydown", (e) => {
+    if (!modalEl || !modalEl.classList.contains("open")) return;
+    if (e.key === "Escape") stopSlideshow();
+    else if (e.key === "ArrowLeft") advanceSlideshow(-1);
+    else if (e.key === "ArrowRight") advanceSlideshow(1);
+  });
+
+  // Initial render (empty state).
+  renderDeck();
 })();
