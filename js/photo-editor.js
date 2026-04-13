@@ -2,6 +2,9 @@
 // a slide deck so users can build a multi-photo slideshow — each slide
 // keeps its own filter settings and caption.
 (function () {
+  // Scope class-based queries to the photos panel so the video editor
+  // can reuse the same class names without colliding.
+  const panel = document.getElementById("panel-photos");
   const drop = document.getElementById("photoDrop");
   const input = document.getElementById("photoInput");
   const canvas = document.getElementById("photoCanvas");
@@ -186,7 +189,7 @@
   function renderFilterThumbnails() {
     const slide = activeSlide();
     if (!slide) return;
-    document.querySelectorAll(".filter-btn").forEach(function (btn) {
+    panel.querySelectorAll(".filter-btn").forEach(function (btn) {
       const name = btn.dataset.filter;
       const p = FILTERS[name] || FILTERS.none;
       const thumbCanvas = btn.querySelector(".filter-thumb");
@@ -293,7 +296,7 @@
           '<p class="muted small">Upload a photo to see AI suggestions.</p>';
       }
       // Reset filter thumbs to the empty hatched state.
-      document.querySelectorAll(".filter-thumb").forEach(function (t) {
+      panel.querySelectorAll(".filter-thumb").forEach(function (t) {
         t.classList.add("empty");
         const c = t.getContext("2d");
         c.clearRect(0, 0, t.width, t.height);
@@ -327,10 +330,10 @@
     if (textSizeEl) textSizeEl.value = slide.text.size;
     if (textColorEl) textColorEl.value = slide.text.color;
 
-    document.querySelectorAll(".filter-btn").forEach((b) => {
+    panel.querySelectorAll(".filter-btn").forEach((b) => {
       b.classList.toggle("active", b.dataset.filter === slide.preset);
     });
-    document.querySelectorAll(".text-style-btn").forEach((b) => {
+    panel.querySelectorAll(".text-style-btn").forEach((b) => {
       b.classList.toggle("active", b.dataset.style === slide.text.style);
     });
   }
@@ -387,7 +390,7 @@
   // Before any photo is loaded, mark the thumbnail canvases with an empty
   // class so the CSS placeholder (diagonal hatch on a blue gradient) shows
   // up instead of a blank white box.
-  document.querySelectorAll(".filter-thumb").forEach(function (t) {
+  panel.querySelectorAll(".filter-thumb").forEach(function (t) {
     t.classList.add("empty");
   });
 
@@ -547,7 +550,7 @@
   });
 
   // ---- Filter button wiring ----
-  document.querySelectorAll(".filter-btn").forEach((btn) =>
+  panel.querySelectorAll(".filter-btn").forEach((btn) =>
     btn.addEventListener("click", () => applyPreset(btn.dataset.filter))
   );
 
@@ -588,7 +591,7 @@
       renderDeck();
     });
   }
-  document.querySelectorAll(".text-style-btn").forEach(function (btn) {
+  panel.querySelectorAll(".text-style-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const slide = activeSlide();
       if (!slide) return;
@@ -601,7 +604,7 @@
       renderDeck();
     });
   });
-  document.querySelectorAll(".text-pos-btn").forEach(function (btn) {
+  panel.querySelectorAll(".text-pos-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const slide = activeSlide();
       if (!slide) return;
