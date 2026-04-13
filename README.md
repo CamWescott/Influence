@@ -33,7 +33,7 @@ browser. The key is stored in `localStorage` only.
 > already includes. For a production deployment, move the API call behind
 > your own backend so the key is never exposed to end users.
 
-## Running
+## Running locally
 
 No build step required.
 
@@ -44,3 +44,57 @@ python3 -m http.server 8000
 ```
 
 Or just double-click `index.html`.
+
+## Deploying to Firebase Hosting
+
+The repo is pre-configured for Firebase Hosting. `firebase.json` defines
+caching + rewrites and `.firebaserc` holds the project alias.
+
+### 1. One-time setup
+
+```
+npm install -g firebase-tools
+firebase login
+```
+
+### 2. Point this repo at your Firebase project
+
+Edit `.firebaserc` and replace `your-firebase-project-id` with the ID from
+your Firebase console (Project Settings → General → Project ID). Or run:
+
+```
+firebase use --add
+```
+
+and pick the project interactively.
+
+### 3. Deploy
+
+```
+firebase deploy --only hosting
+```
+
+Your site will be live at `https://<project-id>.web.app`. To preview locally
+first:
+
+```
+firebase emulators:start --only hosting
+```
+
+### 4. (Optional) Real email + Google sign-in with Firebase Auth
+
+Out of the box the login screen uses a simulated local-only auth, so Google
+works via a prompt and email is password-less. To enable **real**
+authentication:
+
+1. In the Firebase Console, go to **Build → Authentication → Sign-in method**
+   and enable **Email/Password** and **Google**.
+2. Add your deploy domain (e.g. `your-project.web.app`) to
+   **Authentication → Settings → Authorized domains**.
+3. Copy your web app's config (Project Settings → General → Your apps → SDK
+   setup and configuration) into `js/firebase-config.js`, replacing the
+   `YOUR_*` placeholder values.
+4. Re-deploy. The app detects a real config on load and switches the login
+   form and Google button to Firebase Auth automatically.
+
+That's it — no code changes required.
