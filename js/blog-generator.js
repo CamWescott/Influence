@@ -179,6 +179,53 @@
     return [3, 4, 5, 7][Math.floor(Math.random() * 4)];
   }
 
+  // ---------- Loading animation ----------
+  // A cartoon cruise ship sails across an animated ocean while Claude works.
+  // Status text rotates so even 30-second waits feel alive.
+  const LOADING_STAGES = [
+    { at: 0,     text: "Boarding the ship" },
+    { at: 4000,  text: "Casting off the lines" },
+    { at: 9000,  text: "Setting sail" },
+    { at: 15000, text: "Writing your blog post" },
+    { at: 25000, text: "Polishing the prose" },
+    { at: 35000, text: "Almost to port" },
+    { at: 50000, text: "Just a moment longer" },
+  ];
+  let loadingTimer = null;
+
+  function showLoading() {
+    output.innerHTML =
+      '<div class="blog-loading">' +
+        '<div class="bl-sun"></div>' +
+        '<div class="bl-cloud c1"></div>' +
+        '<div class="bl-cloud c2"></div>' +
+        '<div class="bl-cloud c3"></div>' +
+        '<div class="bl-waves"></div>' +
+        '<div class="bl-ship">\uD83D\uDEF3\uFE0F</div>' +
+        '<div class="bl-text">' +
+          '<strong id="blogLoadStatus">Boarding the ship</strong>' +
+          '<span>Claude is writing your travel blog. This usually takes 15\u201330 seconds.</span>' +
+        '</div>' +
+      '</div>';
+
+    const started = Date.now();
+    if (loadingTimer) clearInterval(loadingTimer);
+    loadingTimer = setInterval(function () {
+      const el = document.getElementById("blogLoadStatus");
+      if (!el) { clearInterval(loadingTimer); loadingTimer = null; return; }
+      const elapsed = Date.now() - started;
+      let stage = LOADING_STAGES[0].text;
+      for (let i = 0; i < LOADING_STAGES.length; i++) {
+        if (elapsed >= LOADING_STAGES[i].at) stage = LOADING_STAGES[i].text;
+      }
+      el.textContent = stage;
+    }, 500);
+  }
+
+  function stopLoading() {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+  }
+
   // ---------- Generate button ----------
   generateBtn.addEventListener("click", async function () {
     const topic = topicEl.value.trim() || "Castaway Cay";
@@ -186,7 +233,7 @@
     const audience = audienceEl.value;
     const tone = toneEl.value;
 
-    output.innerHTML = '<p class="muted">&#9875; Writing your blog post...</p>';
+    showLoading();
 
     if (window.WanderlustAI) {
       try {
@@ -207,6 +254,7 @@
         if (heroDataUrl) {
           finalHtml = finalHtml.replace(/<\/h1>/i, '</h1><img src="' + heroDataUrl + '" alt="' + topic + '" />');
         }
+        stopLoading();
         output.innerHTML = finalHtml;
         return;
       } catch (err) {
@@ -214,6 +262,7 @@
       }
     }
 
+    stopLoading();
     output.innerHTML = localGenerate(topic, keywords, audience, tone);
   });
 

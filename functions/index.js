@@ -12,7 +12,7 @@ setGlobalOptions({ region: "us-central1", maxInstances: 10 });
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "claude-haiku-4-5-20251001";
 const MAX_PROMPT_CHARS = 8000;
 const MAX_OUTPUT_TOKENS = 3000;
 

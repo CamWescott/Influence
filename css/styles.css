@@ -656,6 +656,123 @@ h1, h2, h3 {
   border-radius: 999px;
 }
 
+/* ---------- Blog loading animation (cruise ship sailing) ---------- */
+.blog-loading {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  min-height: 520px;
+  background: linear-gradient(180deg, #b8e8ff 0%, #7ac7ec 50%, #1e6091 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 60px;
+}
+
+.blog-loading .bl-sun {
+  position: absolute;
+  top: 36px;
+  right: 60px;
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, #ffe680 0%, #ffd447 60%, transparent 72%);
+  border-radius: 50%;
+  box-shadow: 0 0 50px rgba(255, 212, 71, 0.55);
+  animation: bl-sun 3s ease-in-out infinite;
+}
+@keyframes bl-sun {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+
+.blog-loading .bl-cloud {
+  position: absolute;
+  background: #ffffff;
+  border-radius: 100px;
+  opacity: 0.92;
+  box-shadow: 25px 10px 0 -5px #fff, 50px 0 0 -10px #fff, -25px 5px 0 -5px #fff;
+  animation: bl-drift 22s linear infinite;
+  pointer-events: none;
+}
+.blog-loading .bl-cloud.c1 { width: 90px;  height: 30px; top: 60px; }
+.blog-loading .bl-cloud.c2 { width: 70px;  height: 24px; top: 130px; animation-delay: -11s; animation-duration: 28s; }
+.blog-loading .bl-cloud.c3 { width: 110px; height: 34px; top: 30px;  animation-delay: -16s; animation-duration: 34s; }
+@keyframes bl-drift {
+  0%   { left: -140px; }
+  100% { left: calc(100% + 140px); }
+}
+
+.blog-loading .bl-waves {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: 60px;
+  height: 60px;
+  background: radial-gradient(ellipse at 50% 0%, transparent 0 30px, rgba(10, 61, 98, 0.55) 31px);
+  background-size: 60px 30px;
+  animation: bl-waves 2.5s linear infinite;
+}
+@keyframes bl-waves {
+  0%   { background-position: 0 0; }
+  100% { background-position: 60px 0; }
+}
+
+/* Ship uses "left" for the horizontal sail animation and "transform" for
+   the vertical bob, so the two don't step on each other. */
+.blog-loading .bl-ship {
+  position: absolute;
+  bottom: 88px;
+  left: -15%;
+  font-size: 76px;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35));
+  animation:
+    bl-sail 12s linear infinite,
+    bl-bob 3s ease-in-out infinite;
+}
+@keyframes bl-sail {
+  0%   { left: -15%; }
+  100% { left: 115%; }
+}
+@keyframes bl-bob {
+  0%, 100% { transform: translateY(0)    rotate(-2deg); }
+  50%      { transform: translateY(-8px) rotate(2deg); }
+}
+
+.blog-loading .bl-text {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(10, 35, 64, 0.55);
+  padding: 0 20px;
+}
+.blog-loading .bl-text strong {
+  display: block;
+  font-size: 22px;
+  font-family: "Baloo 2", "Quicksand", system-ui, sans-serif;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.blog-loading .bl-text span {
+  font-size: 13px;
+  opacity: 0.95;
+}
+.blog-loading .bl-dots::after {
+  content: "";
+  display: inline-block;
+  width: 1.2em;
+  text-align: left;
+  animation: bl-dots 1.4s steps(4, end) infinite;
+}
+@keyframes bl-dots {
+  0%   { content: ""; }
+  25%  { content: "."; }
+  50%  { content: ".."; }
+  75%  { content: "..."; }
+  100% { content: ""; }
+}
+
 /* =========================================================
    SOCIAL PANEL
    ========================================================= */
