@@ -738,4 +738,25 @@
 
   // Initial render (empty state).
   renderDeck();
+
+  // Public API for Magic Maker
+  window.VideoMagic = {
+    getClips: function () { return clips; },
+    setClips: function (newClips) {
+      clips = newClips;
+      activeIndex = 0;
+      if (clips.length) {
+        syncControls();
+        loadClipIntoPlayer(clips[0]);
+        renderFilterThumbnails();
+        renderDeck();
+      } else {
+        renderDeck();
+      }
+    },
+    FILTERS: FILTERS,
+    startReel: function () {
+      if (clips.length) playReelBtn && playReelBtn.click();
+    },
+  };
 })();

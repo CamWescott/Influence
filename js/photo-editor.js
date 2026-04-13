@@ -764,4 +764,21 @@
 
   // Initial render (empty state).
   renderDeck();
+
+  // Public API for Magic Maker
+  window.PhotoMagic = {
+    getSlides: function () { return slides; },
+    setSlides: function (newSlides) {
+      slides = newSlides;
+      activeIndex = 0;
+      syncControls();
+      render();
+      renderFilterThumbnails();
+      renderDeck();
+    },
+    FILTERS: FILTERS,
+    startSlideshow: function () {
+      if (slides.length) playBtn && playBtn.click();
+    },
+  };
 })();
