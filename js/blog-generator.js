@@ -199,7 +199,7 @@
           "- Include: intro, 'Why visit', 'Best time to go', 'How to get there', 'Where to stay', 'Top things to do', 'Where to eat', 'Budget tips', 'What to pack', 'Safety & etiquette', 'Sample itinerary', 'FAQ', and a conclusion.\n" +
           "- Approximately 1500 words total.\n" +
           "- No markdown, no code fences. Only HTML.";
-        const html = await window.WanderlustAI.complete(prompt, 4000);
+        const html = await window.WanderlustAI.complete(prompt, 3000);
         let finalHtml = html.trim()
           .replace(/^```html\s*/i, "")
           .replace(/^```\s*/i, "")

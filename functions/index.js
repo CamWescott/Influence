@@ -12,8 +12,9 @@ setGlobalOptions({ region: "us-central1", maxInstances: 10 });
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
-const MODEL = "claude-opus-4-6";
+const MODEL = "claude-sonnet-4-6";
 const MAX_PROMPT_CHARS = 8000;
+const MAX_OUTPUT_TOKENS = 3000;
 
 exports.claude = onRequest(
   {
@@ -33,15 +34,18 @@ exports.claude = onRequest(
       return;
     }
 
+    const started = Date.now();
     try {
       const body = req.body || {};
       const prompt = typeof body.prompt === "string" ? body.prompt : "";
-      const maxTokens = Math.min(Math.max(parseInt(body.maxTokens, 10) || 2000, 100), 4096);
+      const maxTokens = Math.min(Math.max(parseInt(body.maxTokens, 10) || 2000, 100), MAX_OUTPUT_TOKENS);
 
       if (!prompt || prompt.length > MAX_PROMPT_CHARS) {
         res.status(400).json({ error: "Invalid prompt" });
         return;
       }
+
+      console.log("Claude call start", { model: MODEL, maxTokens, promptChars: prompt.length });
 
       const upstream = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -66,9 +70,12 @@ exports.claude = onRequest(
 
       const data = await upstream.json();
       const block = (data.content || []).find((b) => b.type === "text");
+      const elapsedMs = Date.now() - started;
+      console.log("Claude call done", { elapsedMs, textChars: block ? block.text.length : 0 });
       res.json({ text: block ? block.text : "" });
     } catch (err) {
-      console.error("Function error", err);
+      const elapsedMs = Date.now() - started;
+      console.error("Function error", { elapsedMs, message: err && err.message });
       res.status(500).json({ error: "Internal error" });
     }
   }
