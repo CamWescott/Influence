@@ -19,6 +19,7 @@ exports.claude = onRequest(
   {
     secrets: [ANTHROPIC_API_KEY],
     cors: true,
+    invoker: "public",
     timeoutSeconds: 120,
     memory: "512MiB",
   },
