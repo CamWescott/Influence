@@ -34,6 +34,8 @@
   const modalCounter = document.getElementById("slideshowCounter");
   const modalPrev = document.getElementById("slideshowPrev");
   const modalNext = document.getElementById("slideshowNext");
+  const modalPause = document.getElementById("slideshowPause");
+  const durationEl = document.getElementById("slideDuration");
 
   const FILTERS = {
     none:     { b: 100, c: 100, s: 100, w: 0,   bl: 0 },
@@ -641,7 +643,23 @@
   // ---- Slideshow player ----
   let slideshowTimer = null;
   let slideshowIndex = 0;
-  const SLIDE_DURATION = 3500;
+  let slideshowPaused = false;
+
+  function getSlideDuration() {
+    const v = durationEl ? parseInt(durationEl.value, 10) : 3000;
+    return Number.isFinite(v) && v > 0 ? v : 3000;
+  }
+
+  function startAutoplay() {
+    if (slideshowTimer) clearInterval(slideshowTimer);
+    slideshowTimer = setInterval(() => advanceSlideshow(1), getSlideDuration());
+  }
+  function stopAutoplay() {
+    if (slideshowTimer) {
+      clearInterval(slideshowTimer);
+      slideshowTimer = null;
+    }
+  }
 
   function showSlideshowFrame() {
     const slide = slides[slideshowIndex];
@@ -684,37 +702,47 @@
     if (slides.length < 2 || !modalEl) return;
     modalEl.classList.add("open");
     slideshowIndex = 0;
+    slideshowPaused = false;
+    updatePauseBtn();
     showSlideshowFrame();
-    if (slideshowTimer) clearInterval(slideshowTimer);
-    slideshowTimer = setInterval(() => advanceSlideshow(1), SLIDE_DURATION);
+    startAutoplay();
   }
 
   function stopSlideshow() {
-    if (slideshowTimer) {
-      clearInterval(slideshowTimer);
-      slideshowTimer = null;
-    }
+    stopAutoplay();
     if (modalEl) modalEl.classList.remove("open");
+  }
+
+  function togglePause() {
+    slideshowPaused = !slideshowPaused;
+    if (slideshowPaused) stopAutoplay();
+    else startAutoplay();
+    updatePauseBtn();
+  }
+
+  function updatePauseBtn() {
+    if (!modalPause) return;
+    modalPause.innerHTML = slideshowPaused ? "\u25B6" : "\u275A\u275A";
+    modalPause.title = slideshowPaused ? "Play" : "Pause";
   }
 
   if (playBtn) playBtn.addEventListener("click", playSlideshow);
   if (modalClose) modalClose.addEventListener("click", stopSlideshow);
-  if (modalPrev) {
-    modalPrev.addEventListener("click", () => {
-      if (slideshowTimer) {
-        clearInterval(slideshowTimer);
-        slideshowTimer = setInterval(() => advanceSlideshow(1), SLIDE_DURATION);
-      }
-      advanceSlideshow(-1);
-    });
+  if (modalPause) modalPause.addEventListener("click", togglePause);
+
+  // Manual nav resets the autoplay interval so the new slide gets the
+  // full configured duration instead of finishing the previous timer.
+  function manualAdvance(delta) {
+    advanceSlideshow(delta);
+    if (!slideshowPaused) startAutoplay();
   }
-  if (modalNext) {
-    modalNext.addEventListener("click", () => {
-      if (slideshowTimer) {
-        clearInterval(slideshowTimer);
-        slideshowTimer = setInterval(() => advanceSlideshow(1), SLIDE_DURATION);
-      }
-      advanceSlideshow(1);
+  if (modalPrev) modalPrev.addEventListener("click", () => manualAdvance(-1));
+  if (modalNext) modalNext.addEventListener("click", () => manualAdvance(1));
+
+  // Let users change duration mid-slideshow.
+  if (durationEl) {
+    durationEl.addEventListener("change", () => {
+      if (slideshowTimer && !slideshowPaused) startAutoplay();
     });
   }
   // Click outside the canvas or press Esc to close.
@@ -726,8 +754,9 @@
   document.addEventListener("keydown", (e) => {
     if (!modalEl || !modalEl.classList.contains("open")) return;
     if (e.key === "Escape") stopSlideshow();
-    else if (e.key === "ArrowLeft") advanceSlideshow(-1);
-    else if (e.key === "ArrowRight") advanceSlideshow(1);
+    else if (e.key === "ArrowLeft") manualAdvance(-1);
+    else if (e.key === "ArrowRight") manualAdvance(1);
+    else if (e.key === " ") { e.preventDefault(); togglePause(); }
   });
 
   // Initial render (empty state).

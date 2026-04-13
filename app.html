@@ -118,6 +118,18 @@
         <div class="slideshow-head">
           <h3>&#127916; Slideshow Deck <span id="deckCount" class="muted">0 photos</span></h3>
           <div class="slideshow-actions">
+            <label class="duration-picker">
+              Each photo
+              <select id="slideDuration">
+                <option value="1000">1s</option>
+                <option value="2000">2s</option>
+                <option value="3000" selected>3s</option>
+                <option value="4000">4s</option>
+                <option value="5000">5s</option>
+                <option value="7000">7s</option>
+                <option value="10000">10s</option>
+              </select>
+            </label>
             <button class="btn btn-secondary" id="addSlideBtn">+ Add photos</button>
             <button class="btn btn-primary" id="playSlideshowBtn" disabled>&#9658; Play slideshow</button>
           </div>
@@ -131,7 +143,10 @@
         <button class="slideshow-nav prev" id="slideshowPrev" title="Previous">&#10094;</button>
         <canvas id="slideshowCanvas"></canvas>
         <button class="slideshow-nav next" id="slideshowNext" title="Next">&#10095;</button>
-        <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
+        <div class="slideshow-footer">
+          <button class="slideshow-pause" id="slideshowPause" title="Pause/Play">&#10074;&#10074;</button>
+          <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
+        </div>
       </div>
     </section>
 
