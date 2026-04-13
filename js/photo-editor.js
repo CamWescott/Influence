@@ -63,16 +63,19 @@
     const w = parseInt(sliders.warmth.value, 10);
     const bl = sliders.blur.value;
 
-    ctx.filter = buildFilterString(b, c, s, w, bl);
-
     // Fit image into canvas preserving aspect ratio.
     const maxW = 800;
     const maxH = 500;
-    let iw = originalImage.width;
-    let ih = originalImage.height;
+    const iw = originalImage.width;
+    const ih = originalImage.height;
     const scale = Math.min(maxW / iw, maxH / ih, 1);
     canvas.width = Math.round(iw * scale);
     canvas.height = Math.round(ih * scale);
+
+    // IMPORTANT: setting canvas.width/height above resets all context
+    // state (including ctx.filter), so we must apply the filter AFTER
+    // the resize, not before, otherwise nothing gets applied to the image.
+    ctx.filter = buildFilterString(b, c, s, w, bl);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
   }
