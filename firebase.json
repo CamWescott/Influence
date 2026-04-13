@@ -6,11 +6,19 @@
       "**/.*",
       "**/node_modules/**",
       "**/README.md",
-      "**/.firebaserc"
+      "**/.firebaserc",
+      "functions/**"
     ],
     "cleanUrls": true,
     "trailingSlash": false,
     "rewrites": [
+      {
+        "source": "/api/claude",
+        "function": {
+          "functionId": "claude",
+          "region": "us-central1"
+        }
+      },
       {
         "source": "/app",
         "destination": "/app.html"
@@ -49,5 +57,17 @@
         ]
       }
     ]
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs20",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.log"
+      ]
+    }
+  ]
 }

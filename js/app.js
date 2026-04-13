@@ -35,9 +35,32 @@
     getKey() { return localStorage.getItem(KEY_STORAGE) || ""; },
     setKey(k) { localStorage.setItem(KEY_STORAGE, k); },
     clearKey() { localStorage.removeItem(KEY_STORAGE); },
+
+    // Tries in order:
+    //   1. The server-side /api/claude Cloud Function (preferred for shared
+    //      deploys — no key is exposed to the browser).
+    //   2. A direct call to Anthropic using the user's locally-stored key
+    //      (useful for local development).
+    // Throws if neither path works; callers already fall back to templates.
     async complete(prompt, maxTokens) {
+      // --- 1. Try the Cloud Function proxy. ---
+      try {
+        const proxyRes = await fetch("/api/claude", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: prompt, maxTokens: maxTokens || 2000 }),
+        });
+        if (proxyRes.ok) {
+          const data = await proxyRes.json();
+          if (data && data.text) return data.text;
+        }
+      } catch (e) {
+        // Network/CORS failure (e.g. running from file://) — fall through.
+      }
+
+      // --- 2. Fall back to a direct call with the user's local key. ---
       const key = this.getKey();
-      if (!key) throw new Error("No API key set");
+      if (!key) throw new Error("No AI backend available");
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {

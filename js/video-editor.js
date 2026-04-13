@@ -115,8 +115,8 @@
   function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
   document.getElementById("voSuggest").addEventListener("click", async function () {
-    // If a Claude API key is set, ask Claude for a richer script.
-    if (window.WanderlustAI && window.WanderlustAI.hasKey()) {
+    // Try Claude via the Cloud Function proxy (or local key in dev).
+    if (window.WanderlustAI) {
       script.value = "Generating with Claude...";
       try {
         const prompt = "Write a short 30-45 second travel vlog voice-over script for a cruise/beach destination. Make it warm, vivid, and engaging. Output only the script, no stage directions.";

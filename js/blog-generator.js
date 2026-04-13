@@ -188,7 +188,7 @@
 
     output.innerHTML = '<p class="muted">&#9875; Writing your blog post...</p>';
 
-    if (window.WanderlustAI && window.WanderlustAI.hasKey()) {
+    if (window.WanderlustAI) {
       try {
         const prompt =
           "You are an expert travel blogger. Write a 1500-word SEO-optimized blog post about \"" + topic + "\" for " + audience + ".\n" +
