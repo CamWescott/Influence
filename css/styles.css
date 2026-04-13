@@ -923,6 +923,68 @@ h1, h2, h3 {
   font-size: 13px;
 }
 
+/* ---------- Video editor layout (mirrors .photo-layout) ---------- */
+.video-editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 1100px) {
+  .video-editor-layout { grid-template-columns: 1fr; }
+}
+
+.video-stage {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  position: relative;
+}
+#videoCanvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  background: #0a1628;
+  display: none;
+}
+#videoCanvas.loaded { display: block; cursor: grab; }
+#videoCanvas.dragging { cursor: grabbing; }
+.video-empty {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+#videoCanvas.loaded + .video-empty { display: none; }
+
+.video-tools {
+  background: var(--white);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+  max-height: 680px;
+}
+.video-tools h3 {
+  margin: 0 0 10px;
+  color: var(--ocean-deep);
+  font-size: 16px;
+}
+.video-tools h3:not(:first-child) { margin-top: 18px; }
+
+.video-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.video-actions .btn { flex: 1; padding: 10px; font-size: 13px; }
+
+.video-vo-row {
+  margin-top: 20px;
+}
+
 /* =========================================================
    BLOG PANEL
    ========================================================= */
