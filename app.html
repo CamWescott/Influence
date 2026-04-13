@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wanderlust Deck</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="app-page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="anchor">&#9875;</span>
+      <strong>Wanderlust Deck</strong>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="photos">&#128247; Photos</button>
+      <button class="tab" data-tab="videos">&#127909; Videos</button>
+      <button class="tab" data-tab="blog">&#128221; Blog</button>
+      <button class="tab" data-tab="social">&#128241; Social</button>
+    </nav>
+    <div class="user-box">
+      <span id="userName">Captain</span>
+      <button id="signOutBtn" class="btn btn-ghost">Sign out</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <!-- =================== PHOTOS =================== -->
+    <section class="panel active" id="panel-photos">
+      <div class="panel-head">
+        <h2>&#128247; Photo Studio</h2>
+        <p>Upload a travel shot, then polish it with one-click filters &amp; pro tools.</p>
+      </div>
+
+      <div class="photo-layout">
+        <div class="upload-zone" id="photoDrop">
+          <input type="file" id="photoInput" accept="image/*" hidden />
+          <div class="upload-inner">
+            <div class="upload-ic">&#127956;</div>
+            <p><strong>Drop a photo</strong> or click to upload</p>
+            <span class="muted">JPG, PNG, WEBP</span>
+          </div>
+        </div>
+
+        <div class="photo-stage">
+          <canvas id="photoCanvas" width="800" height="500"></canvas>
+          <div class="photo-empty" id="photoEmpty">Your photo will appear here.</div>
+        </div>
+
+        <aside class="photo-tools">
+          <h3>Suggested Edits</h3>
+          <div id="photoSuggestions" class="suggestions">
+            <p class="muted small">Upload a photo to see AI suggestions.</p>
+          </div>
+
+          <h3>Filters</h3>
+          <div class="filter-grid">
+            <button class="filter-btn" data-filter="none">Original</button>
+            <button class="filter-btn" data-filter="tropical">Tropical</button>
+            <button class="filter-btn" data-filter="sunset">Sunset</button>
+            <button class="filter-btn" data-filter="ocean">Ocean</button>
+            <button class="filter-btn" data-filter="vintage">Vintage</button>
+            <button class="filter-btn" data-filter="bnw">B&amp;W</button>
+            <button class="filter-btn" data-filter="vivid">Vivid</button>
+            <button class="filter-btn" data-filter="dreamy">Dreamy</button>
+          </div>
+
+          <h3>Adjustments</h3>
+          <label class="slider">Brightness <input type="range" id="brightness" min="0" max="200" value="100" /></label>
+          <label class="slider">Contrast <input type="range" id="contrast" min="0" max="200" value="100" /></label>
+          <label class="slider">Saturation <input type="range" id="saturation" min="0" max="200" value="100" /></label>
+          <label class="slider">Warmth <input type="range" id="warmth" min="-50" max="50" value="0" /></label>
+          <label class="slider">Blur <input type="range" id="blur" min="0" max="10" value="0" /></label>
+
+          <div class="photo-actions">
+            <button class="btn btn-secondary" id="photoReset">Reset</button>
+            <button class="btn btn-primary" id="photoDownload">Download</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =================== VIDEOS =================== -->
+    <section class="panel" id="panel-videos">
+      <div class="panel-head">
+        <h2>&#127909; Video Studio</h2>
+        <p>Upload a clip, write a script, and let the AI narrator do the talking.</p>
+      </div>
+
+      <div class="video-layout">
+        <div class="video-left">
+          <div class="upload-zone" id="videoDrop">
+            <input type="file" id="videoInput" accept="video/*" hidden />
+            <div class="upload-inner">
+              <div class="upload-ic">&#127916;</div>
+              <p><strong>Drop a video</strong> or click to upload</p>
+              <span class="muted">MP4, MOV, WEBM</span>
+            </div>
+          </div>
+          <video id="videoPlayer" controls></video>
+        </div>
+
+        <div class="video-right">
+          <h3>AI Voice-Over Script</h3>
+          <textarea id="voScript" rows="8" placeholder="Welcome aboard! Today we're sailing into the turquoise waters of the Bahamas, where every sunrise feels like the opening scene of a fairy tale..."></textarea>
+
+          <div class="vo-controls">
+            <label>
+              Voice
+              <select id="voVoice"></select>
+            </label>
+            <label>
+              Rate
+              <input type="range" id="voRate" min="0.5" max="1.6" step="0.1" value="1" />
+            </label>
+            <label>
+              Pitch
+              <input type="range" id="voPitch" min="0.5" max="2" step="0.1" value="1" />
+            </label>
+          </div>
+
+          <div class="vo-buttons">
+            <button class="btn btn-primary" id="voPlay">&#9658; Narrate over video</button>
+            <button class="btn btn-secondary" id="voStop">&#9632; Stop</button>
+            <button class="btn btn-ghost" id="voSuggest">Suggest a script</button>
+          </div>
+
+          <div class="vo-tips">
+            <strong>Tip:</strong> Click <em>Narrate over video</em> to play your clip and the AI voice at the same time. Use a short script (~25–60 seconds) for reels.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================== BLOG =================== -->
+    <section class="panel" id="panel-blog">
+      <div class="panel-head">
+        <h2>&#128221; Blog Generator</h2>
+        <p>Drop a photo, add keywords &amp; an audience, and get a 1500-word SEO-optimized post.</p>
+      </div>
+
+      <div class="blog-layout">
+        <div class="blog-form">
+          <div class="upload-zone small" id="blogDrop">
+            <input type="file" id="blogPhotoInput" accept="image/*" hidden />
+            <div class="upload-inner">
+              <div class="upload-ic">&#127965;</div>
+              <p><strong>Add a hero photo</strong></p>
+              <span class="muted">Optional but recommended</span>
+            </div>
+          </div>
+          <img id="blogPreview" alt="Hero preview" />
+
+          <label>Destination / Topic
+            <input type="text" id="blogTopic" placeholder="Castaway Cay, Bahamas" />
+          </label>
+          <label>Keywords (comma separated)
+            <input type="text" id="blogKeywords" placeholder="Disney cruise, snorkeling, family travel" />
+          </label>
+          <label>Target Audience
+            <select id="blogAudience">
+              <option>Families with kids</option>
+              <option>Couples on honeymoon</option>
+              <option>Solo female travelers</option>
+              <option>Budget backpackers</option>
+              <option>Luxury cruise enthusiasts</option>
+              <option>Adventure seekers</option>
+              <option>Foodies</option>
+            </select>
+          </label>
+          <label>Tone
+            <select id="blogTone">
+              <option>Warm &amp; storytelling</option>
+              <option>Practical &amp; informative</option>
+              <option>Witty &amp; playful</option>
+              <option>Inspirational</option>
+            </select>
+          </label>
+
+          <button class="btn btn-primary" id="blogGenerate">&#10024; Generate 1500-word post</button>
+          <button class="btn btn-secondary" id="blogCopy">Copy to clipboard</button>
+        </div>
+
+        <article class="blog-output" id="blogOutput">
+          <p class="muted">Your generated blog post will appear here.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- =================== SOCIAL =================== -->
+    <section class="panel" id="panel-social">
+      <div class="panel-head">
+        <h2>&#128241; Social Media Posts</h2>
+        <p>Auto-generated captions for Instagram, TikTok, X &amp; Facebook — with hashtags.</p>
+      </div>
+
+      <div class="social-form">
+        <label>What's the post about?
+          <input type="text" id="socialTopic" placeholder="Sunset deck party on the Disney Wish" />
+        </label>
+        <label>Mood
+          <select id="socialMood">
+            <option>Magical</option>
+            <option>Adventurous</option>
+            <option>Relaxing</option>
+            <option>Funny</option>
+            <option>Inspiring</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" id="socialGenerate">&#10024; Generate posts</button>
+      </div>
+
+      <div class="social-grid" id="socialGrid"></div>
+    </section>
+
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/photo-editor.js"></script>
+  <script src="js/video-editor.js"></script>
+  <script src="js/blog-generator.js"></script>
+  <script src="js/social-posts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
