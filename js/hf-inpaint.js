@@ -7,7 +7,7 @@
 
   const TOKEN_KEY   = "wanderlust_hf_token";
   const BUILT_IN_TOKEN = "";   // intentionally empty — key is stored in localStorage via the UI
-  const MODEL_URL   = "https://router.huggingface.co/models/runwayml/stable-diffusion-inpainting";
+  const MODEL_URL   = "https://router.huggingface.co/hf-inference/models/runwayml/stable-diffusion-inpainting";
   const FIT_SIZE    = 512;   // SD 1.5 inpainting optimal input resolution
   const MAX_RETRIES = 4;     // cold-start retries
 

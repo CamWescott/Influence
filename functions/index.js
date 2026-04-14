@@ -87,7 +87,7 @@ exports.claude = onRequest(
 // Accepts: { image_b64: string, mask_b64: string, prompt: string }
 // Returns: { result: "data:image/jpeg;base64,..." }
 // ---------------------------------------------------------------------------
-const HF_MODEL_URL    = "https://router.huggingface.co/models/runwayml/stable-diffusion-inpainting";
+const HF_MODEL_URL    = "https://router.huggingface.co/hf-inference/models/runwayml/stable-diffusion-inpainting";
 const HF_MAX_RETRIES  = 4;
 const HF_MAX_B64_BYTES = 4 * 1024 * 1024; // 4 MB per image (512×512 PNG is ~350 KB)
 
