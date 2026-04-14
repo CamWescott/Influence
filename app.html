@@ -205,6 +205,7 @@
           <canvas id="videoCanvas" width="800" height="450"></canvas>
           <div class="video-empty" id="videoEmpty">Your video will appear here.</div>
           <div class="video-playback-bar" id="videoPlaybackBar">
+            <button class="video-play-btn" id="videoPlayPause">&#9658;</button>
             <span class="video-time" id="videoCurrentTime">0:00</span>
             <div class="video-scrubber-track" id="videoScrubberTrack">
               <div class="video-scrubber-fill" id="videoScrubberFill"></div>
@@ -215,63 +216,54 @@
         </div>
 
         <aside class="video-tools">
-          <h3>Filters</h3>
-          <div class="filter-grid">
-            <button class="filter-btn" data-filter="none"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Original</span></button>
-            <button class="filter-btn" data-filter="tropical"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Tropical</span></button>
-            <button class="filter-btn" data-filter="sunset"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Sunset</span></button>
-            <button class="filter-btn" data-filter="ocean"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Ocean</span></button>
-            <button class="filter-btn" data-filter="vintage"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Vintage</span></button>
-            <button class="filter-btn" data-filter="bnw"><canvas class="filter-thumb" width="96" height="60"></canvas><span>B&amp;W</span></button>
-            <button class="filter-btn" data-filter="vivid"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Vivid</span></button>
-            <button class="filter-btn" data-filter="dreamy"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Dreamy</span></button>
+          <div class="tools-col">
+            <h3>Filters</h3>
+            <div class="filter-grid">
+              <button class="filter-btn" data-filter="none"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Original</span></button>
+              <button class="filter-btn" data-filter="tropical"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Tropical</span></button>
+              <button class="filter-btn" data-filter="sunset"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Sunset</span></button>
+              <button class="filter-btn" data-filter="ocean"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Ocean</span></button>
+              <button class="filter-btn" data-filter="vintage"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Vintage</span></button>
+              <button class="filter-btn" data-filter="bnw"><canvas class="filter-thumb" width="96" height="60"></canvas><span>B&amp;W</span></button>
+              <button class="filter-btn" data-filter="vivid"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Vivid</span></button>
+              <button class="filter-btn" data-filter="dreamy"><canvas class="filter-thumb" width="96" height="60"></canvas><span>Dreamy</span></button>
+            </div>
+
+            <h3>Adjustments</h3>
+            <label class="slider">Brightness <input type="range" id="vidBrightness" min="0" max="200" value="100" /></label>
+            <label class="slider">Contrast <input type="range" id="vidContrast" min="0" max="200" value="100" /></label>
+            <label class="slider">Saturation <input type="range" id="vidSaturation" min="0" max="200" value="100" /></label>
+            <label class="slider">Warmth <input type="range" id="vidWarmth" min="-50" max="50" value="0" /></label>
+            <label class="slider">Blur <input type="range" id="vidBlur" min="0" max="10" value="0" /></label>
           </div>
 
-          <h3>Adjustments</h3>
-          <label class="slider">Brightness <input type="range" id="vidBrightness" min="0" max="200" value="100" /></label>
-          <label class="slider">Contrast <input type="range" id="vidContrast" min="0" max="200" value="100" /></label>
-          <label class="slider">Saturation <input type="range" id="vidSaturation" min="0" max="200" value="100" /></label>
-          <label class="slider">Warmth <input type="range" id="vidWarmth" min="-50" max="50" value="0" /></label>
-          <label class="slider">Blur <input type="range" id="vidBlur" min="0" max="10" value="0" /></label>
+          <div class="tools-col">
+            <h3>Text Overlay</h3>
+            <input type="text" id="videoText" class="text-input" placeholder="Add a caption&hellip;" />
+            <div class="text-controls">
+              <label class="mini">Font
+                <select id="videoTextFont">
+                  <option value="'Baloo 2', cursive">Display</option>
+                  <option value="'Quicksand', sans-serif">Clean</option>
+                  <option value="Georgia, 'Times New Roman', serif">Serif</option>
+                  <option value="Impact, 'Arial Black', sans-serif">Bold</option>
+                  <option value="'Courier New', monospace">Mono</option>
+                </select>
+              </label>
+              <label class="mini">Size <input type="range" id="videoTextSize" min="16" max="120" value="48" /></label>
+              <label class="mini">Color <input type="color" id="videoTextColor" value="#ffffff" /></label>
+            </div>
+            <div class="text-style-row">
+              <button class="text-style-btn active" data-style="shadow">Shadow</button>
+              <button class="text-style-btn" data-style="outline">Outline</button>
+              <button class="text-style-btn" data-style="banner">Banner</button>
+              <button class="text-style-btn" data-style="plain">Plain</button>
+            </div>
 
-          <h3>Text Overlay</h3>
-          <input type="text" id="videoText" class="text-input" placeholder="Add a caption&hellip;" />
-          <div class="text-controls">
-            <label class="mini">Font
-              <select id="videoTextFont">
-                <option value="'Baloo 2', cursive">Display</option>
-                <option value="'Quicksand', sans-serif">Clean</option>
-                <option value="Georgia, 'Times New Roman', serif">Serif</option>
-                <option value="Impact, 'Arial Black', sans-serif">Bold</option>
-                <option value="'Courier New', monospace">Mono</option>
-              </select>
-            </label>
-            <label class="mini">Size <input type="range" id="videoTextSize" min="16" max="120" value="48" /></label>
-            <label class="mini">Color <input type="color" id="videoTextColor" value="#ffffff" /></label>
-          </div>
-          <div class="text-style-row">
-            <button class="text-style-btn active" data-style="shadow">Shadow</button>
-            <button class="text-style-btn" data-style="outline">Outline</button>
-            <button class="text-style-btn" data-style="banner">Banner</button>
-            <button class="text-style-btn" data-style="plain">Plain</button>
-          </div>
-          <div class="text-pos-grid">
-            <button class="text-pos-btn" data-pos="0.1,0.12" title="Top left">&#8598;</button>
-            <button class="text-pos-btn" data-pos="0.5,0.12" title="Top">&#8593;</button>
-            <button class="text-pos-btn" data-pos="0.9,0.12" title="Top right">&#8599;</button>
-            <button class="text-pos-btn" data-pos="0.1,0.5" title="Left">&#8592;</button>
-            <button class="text-pos-btn" data-pos="0.5,0.5" title="Center">&#9679;</button>
-            <button class="text-pos-btn" data-pos="0.9,0.5" title="Right">&#8594;</button>
-            <button class="text-pos-btn" data-pos="0.1,0.88" title="Bottom left">&#8601;</button>
-            <button class="text-pos-btn" data-pos="0.5,0.88" title="Bottom">&#8595;</button>
-            <button class="text-pos-btn" data-pos="0.9,0.88" title="Bottom right">&#8600;</button>
-          </div>
-          <p class="muted tiny">Tip: drag the caption directly on the video to reposition it.</p>
-
-          <div class="video-actions">
-            <button class="btn btn-secondary" id="videoReset">Reset</button>
-            <button class="btn btn-primary" id="videoPlayPause">&#9658; Play</button>
-            <button class="btn btn-album" id="saveClipBtn">&#128193; Save clip</button>
+            <div class="video-actions">
+              <button class="btn btn-secondary" id="videoReset">Reset</button>
+              <button class="btn btn-album" id="saveClipBtn">&#128193; Save clip</button>
+            </div>
           </div>
         </aside>
       </div>

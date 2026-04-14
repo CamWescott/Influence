@@ -13,6 +13,7 @@
   const vid = document.createElement("video");
   vid.style.display = "none";
   vid.playsInline   = true;
+  vid.preload       = "auto";
   document.body.appendChild(vid);
 
   // ---- Sidebar controls ----
@@ -183,11 +184,18 @@
     canvas.classList.add("loaded");
     if (emptyMsg) emptyMsg.style.display = "none";
     ensureRaf();
+    // Seek to time 0 to trigger buffering of the first frame so the canvas
+    // isn't black while the video is paused.
+    vid.currentTime = 0;
   });
 
   function loadClipIntoPlayer(clip) {
     vid.src = clip.url;
     vid.load();
+    // Seek to first frame once metadata is ready so the canvas isn't black.
+    vid.addEventListener("loadeddata", function () {
+      if (!isPlaying) updateScrubber();
+    }, { once: true });
   }
 
   // ---- Filter thumbnails ----
@@ -425,7 +433,7 @@
 
   function updatePlayPauseBtn() {
     if (!playPauseBtn) return;
-    playPauseBtn.innerHTML = isPlaying ? "\u23F8 Pause" : "\u25B6 Play";
+    playPauseBtn.innerHTML = isPlaying ? "\u23F8" : "\u25B6";
   }
 
   // ---- Reel: advance clips on video.ended ----
