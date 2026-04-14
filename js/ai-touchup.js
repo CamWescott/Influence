@@ -436,7 +436,7 @@
       await new Promise(function (res, rej) { newImg.onload = res; newImg.onerror = rej; newImg.src = tmp.toDataURL("image/png"); });
       const newSlide = Object.assign({}, slide, { image: newImg });
       api.updateActiveSlide(newSlide);
-      showMiniToast("Smart fill applied. Paste a Hugging Face key in AI Tools for real AI removal.");
+      showMiniToast("Smart fill applied. (Real AI inpainting requires an HF PRO subscription or Stability AI key.)");
     } catch (err) {
       console.error("AI Touchup:", err);
       showMiniToast("Edit failed. Please try again.", true);

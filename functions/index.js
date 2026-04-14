@@ -141,16 +141,27 @@ async function callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft, m
 
 exports.hfInpaint = onRequest(
   {
+    // HF_API_KEY kept in secrets so the function can be re-enabled when a
+    // provider that supports inpainting becomes available on hf-inference.
     secrets: [HF_API_KEY],
     cors: true,
     invoker: "public",
-    timeoutSeconds: 180,   // generous — HF cold starts can take 60s+
-    memory: "512MiB",
+    timeoutSeconds: 30,
+    memory: "256MiB",
   },
   async (req, res) => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "POST")    { res.status(405).json({ error: "Method not allowed" }); return; }
 
+    // The hf-inference free provider does not host any image inpainting models.
+    // Returning 501 immediately so the browser falls back to canvas smart-fill
+    // without burning the full 180s timeout on guaranteed-to-fail HF calls.
+    // To enable real AI inpainting, swap this block with a call to a provider
+    // that supports it (e.g. Stability AI, Replicate, or HF PRO via novita).
+    res.status(501).json({ error: "AI inpainting not available — HF free tier does not support inpainting models." });
+    return;
+
+    // ---- Preserved for when a supported provider is wired up ---- //
     const started = Date.now();
     try {
       const { image_b64, mask_b64, prompt } = req.body || {};
@@ -163,8 +174,6 @@ exports.hfInpaint = onRequest(
         res.status(400).json({ error: "Image too large" });
         return;
       }
-
-      console.log("HF inpaint start", { promptChars: prompt.length });
 
       const upstream = await callHuggingFace(
         image_b64, mask_b64,
