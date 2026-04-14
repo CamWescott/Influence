@@ -129,8 +129,14 @@
           </div>
 
           <h3>AI Tools</h3>
+          <div class="hf-key-row">
+            <input type="password" id="hfApiKeyInput" class="hf-key-input"
+              placeholder="Paste Hugging Face key (hf_\u2026)" autocomplete="off" />
+            <button class="btn btn-sm btn-secondary" id="hfApiKeySave">Save</button>
+          </div>
+          <span class="hf-key-status" id="hfApiKeyStatus"></span>
           <button class="btn btn-ai-touchup" id="aiTouchupBtn">&#129668; AI Touchup</button>
-          <p class="muted tiny">Draw around any object to erase or transform it with AI.</p>
+          <p class="muted tiny">Draw around any object to erase or transform it with AI. Free Hugging Face key required for real AI removal.</p>
         </aside>
       </div>
 
@@ -500,6 +506,7 @@
   <script src="js/video-editor.js"></script>
   <script src="js/music-gen.js"></script>
   <script src="js/magic-maker.js"></script>
+  <script src="js/hf-inpaint.js"></script>
   <script src="js/ai-touchup.js"></script>
   <script src="js/album.js"></script>
   <script src="js/blog-generator.js"></script>

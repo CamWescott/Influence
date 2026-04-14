@@ -533,6 +533,33 @@ h1, h2, h3 {
   border-radius: var(--radius-sm);
 }
 
+/* ---- HF API key entry ---- */
+.hf-key-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.hf-key-input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 2px solid rgba(10,35,64,.12);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 13px;
+  background: var(--cream);
+  min-width: 0;
+  transition: border-color 0.15s;
+}
+.hf-key-input:focus { outline: none; border-color: #6366f1; }
+.hf-key-status {
+  display: block;
+  font-size: 12px;
+  min-height: 16px;
+  margin-bottom: 8px;
+}
+.hf-key-status.ok    { color: #0d9488; }
+.hf-key-status.error { color: #dc2626; }
+
 /* ---- AI Touchup button ---- */
 .btn-ai-touchup {
   width: 100%;

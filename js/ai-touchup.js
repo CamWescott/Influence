@@ -419,7 +419,7 @@
           });
           const newSlide = Object.assign({}, slide, { image: newImg });
           api.updateActiveSlide(newSlide);
-          showMiniToast("Edit applied!");
+          showMiniToast("\u2728 AI edit applied!");
           deactivate();
           return;
         }
@@ -436,7 +436,7 @@
       await new Promise(function (res, rej) { newImg.onload = res; newImg.onerror = rej; newImg.src = tmp.toDataURL("image/png"); });
       const newSlide = Object.assign({}, slide, { image: newImg });
       api.updateActiveSlide(newSlide);
-      showMiniToast("Edit applied! (AI API not configured — used smart fill)");
+      showMiniToast("Smart fill applied. Paste a Hugging Face key in AI Tools for real AI removal.");
     } catch (err) {
       console.error("AI Touchup:", err);
       showMiniToast("Edit failed. Please try again.", true);
