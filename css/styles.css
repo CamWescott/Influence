@@ -394,12 +394,21 @@ h1, h2, h3 {
    ========================================================= */
 .photo-layout {
   display: grid;
-  grid-template-columns: 200px 1fr 220px;
+  grid-template-columns: 230px minmax(0, 1fr) 460px;
   gap: 16px;
   align-items: start;
 }
 @media (max-width: 1100px) {
   .photo-layout { grid-template-columns: 1fr; }
+}
+
+.photo-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.photo-left .music-card {
+  margin-top: 0;
 }
 
 .photo-stage {
@@ -432,6 +441,13 @@ h1, h2, h3 {
   padding: 14px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  display: flex;
+  gap: 14px;
+  align-items: start;
+}
+.tools-col {
+  flex: 1;
+  min-width: 0;
 }
 .photo-tools h3 {
   margin: 0 0 8px;
