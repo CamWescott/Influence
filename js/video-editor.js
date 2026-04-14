@@ -736,6 +736,22 @@
     voScript.value = rand(SAMPLE_OPENERS) + " " + rand(SAMPLE_MIDDLE) + " " + rand(SAMPLE_CLOSERS);
   });
 
+  // Render a single clip thumbnail with its filter + caption (used by Album save).
+  function renderClipToDataUrl(clip, maxDim) {
+    const sw = clip.thumb.width  || 640;
+    const sh = clip.thumb.height || 360;
+    const scale = Math.min(maxDim / sw, maxDim / sh, 1);
+    const tc  = document.createElement("canvas");
+    tc.width  = Math.round(sw * scale);
+    tc.height = Math.round(sh * scale);
+    const tctx = tc.getContext("2d");
+    tctx.filter = buildFilterString(clip.filter);
+    tctx.drawImage(clip.thumb, 0, 0, tc.width, tc.height);
+    tctx.filter = "none";
+    drawText(tctx, clip.text, tc.width, tc.height);
+    return tc.toDataURL("image/jpeg", 0.78);
+  }
+
   // Initial render (empty state).
   renderDeck();
 
@@ -753,6 +769,14 @@
       } else {
         renderDeck();
       }
+    },
+    captureActiveThumb: function () {
+      const clip = activeClip();
+      return clip ? renderClipToDataUrl(clip, 640) : null;
+    },
+    captureAllThumbs: function () {
+      const maxDim = clips.length > 6 ? 400 : 640;
+      return clips.map(function (c) { return renderClipToDataUrl(c, maxDim); });
     },
     FILTERS: FILTERS,
     startReel: function () {

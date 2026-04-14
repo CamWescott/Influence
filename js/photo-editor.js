@@ -762,6 +762,22 @@
     else if (e.key === " ") { e.preventDefault(); togglePause(); }
   });
 
+  // Render a single slide to a JPEG data URL (used by Album save).
+  function renderSlideToDataUrl(slide, maxDim) {
+    const iw = slide.image.naturalWidth  || slide.image.width  || 800;
+    const ih = slide.image.naturalHeight || slide.image.height || 500;
+    const scale = Math.min(maxDim / iw, maxDim / ih, 1);
+    const tc  = document.createElement("canvas");
+    tc.width  = Math.round(iw * scale);
+    tc.height = Math.round(ih * scale);
+    const tctx = tc.getContext("2d");
+    tctx.filter = buildFilterString(slide.filter);
+    tctx.drawImage(slide.image, 0, 0, tc.width, tc.height);
+    tctx.filter = "none";
+    drawText(tctx, slide.text, tc.width, tc.height);
+    return tc.toDataURL("image/jpeg", 0.82);
+  }
+
   // Initial render (empty state).
   renderDeck();
 
@@ -785,6 +801,14 @@
       render();
       renderFilterThumbnails();
       renderDeck();
+    },
+    captureActiveFrame: function () {
+      const slide = activeSlide();
+      return slide ? renderSlideToDataUrl(slide, 640) : null;
+    },
+    captureAllFrames: function () {
+      const maxDim = slides.length > 6 ? 400 : 640;
+      return slides.map(function (s) { return renderSlideToDataUrl(s, maxDim); });
     },
     FILTERS: FILTERS,
     startSlideshow: function () {

@@ -15,6 +15,7 @@
     <nav class="tabs">
       <button class="tab active" data-tab="photos">&#128247; Photos</button>
       <button class="tab" data-tab="videos">&#127909; Videos</button>
+      <button class="tab" data-tab="album">&#128193; Album</button>
       <button class="tab" data-tab="blog">&#128221; Blog</button>
       <button class="tab" data-tab="social">&#128241; Social</button>
     </nav>
@@ -124,6 +125,7 @@
           <div class="photo-actions">
             <button class="btn btn-secondary" id="photoReset">Reset</button>
             <button class="btn btn-primary" id="photoDownload">Download</button>
+            <button class="btn btn-album" id="savePhotoBtn">&#128193; Save</button>
           </div>
 
           <h3>AI Tools</h3>
@@ -151,6 +153,7 @@
             <button class="btn btn-secondary" id="addSlideBtn">+ Add photos</button>
             <button class="btn btn-primary" id="playSlideshowBtn" disabled>&#9658; Play slideshow</button>
             <button class="btn btn-magic" id="photoMagicBtn">&#10024; Magic Maker</button>
+            <button class="btn btn-album" id="saveSlideshowBtn">&#128193; Save slideshow</button>
           </div>
         </div>
         <div class="slide-deck" id="slideDeck"></div>
@@ -266,6 +269,7 @@
           <div class="video-actions">
             <button class="btn btn-secondary" id="videoReset">Reset</button>
             <button class="btn btn-primary" id="videoPlayPause">&#9658; Play</button>
+            <button class="btn btn-album" id="saveClipBtn">&#128193; Save clip</button>
           </div>
         </aside>
       </div>
@@ -278,6 +282,7 @@
             <button class="btn btn-secondary" id="addClipBtn">+ Add clips</button>
             <button class="btn btn-primary" id="playReelBtn" disabled>&#9658; Play reel</button>
             <button class="btn btn-magic" id="videoMagicBtn">&#10024; Magic Maker</button>
+            <button class="btn btn-album" id="saveReelBtn">&#128193; Save reel</button>
           </div>
         </div>
         <div class="slide-deck" id="reelDeck"></div>
@@ -416,6 +421,75 @@
       <div class="social-grid" id="socialGrid"></div>
     </section>
 
+    <!-- =================== ALBUM =================== -->
+    <section class="panel" id="panel-album">
+      <div class="panel-head">
+        <h2>&#128193; My Album</h2>
+        <p>Save your edited photos, slideshows, clips and reels. Organise them into folders and download any time.</p>
+      </div>
+
+      <div class="album-layout">
+
+        <!-- Sidebar: folder list -->
+        <aside class="album-sidebar">
+          <div class="album-sidebar-head">
+            <h3>Folders</h3>
+            <button class="btn btn-sm btn-secondary" id="albumNewFolderBtn">+ New</button>
+          </div>
+          <ul class="album-folder-list" id="albumFolderList"></ul>
+          <div class="album-storage">
+            <div class="album-storage-track">
+              <div class="album-storage-fill" id="albumStorageBar"></div>
+            </div>
+            <span class="album-storage-text" id="albumStorageText">0 KB used</span>
+          </div>
+        </aside>
+
+        <!-- Main: item grid -->
+        <div class="album-main">
+          <div class="album-main-head">
+            <h3 id="albumFolderName">All Items</h3>
+            <span class="muted small" id="albumItemCount">0 items</span>
+          </div>
+          <div class="album-grid" id="albumGrid"></div>
+          <div class="album-empty" id="albumEmpty">
+            <div class="album-empty-icon">&#128193;</div>
+            <p><strong>Your album is empty</strong></p>
+            <p class="muted">Use the <strong>&#128193; Save</strong> buttons in the Photos and Videos panels to add content here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save-to-album dialog -->
+      <div class="album-modal-overlay" id="albumSaveModal">
+        <div class="album-modal">
+          <h3>Save to Album</h3>
+          <label class="album-modal-label">Name
+            <input type="text" id="albumSaveName" class="album-modal-input" placeholder="Give this a name&hellip;" />
+          </label>
+          <label class="album-modal-label">Folder
+            <select id="albumSaveFolder" class="album-modal-input"></select>
+          </label>
+          <div class="album-modal-actions">
+            <button class="btn btn-primary" id="albumSaveConfirm">Save</button>
+            <button class="btn btn-secondary" id="albumSaveCancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Move-to-folder dialog -->
+      <div class="album-modal-overlay" id="albumMoveModal">
+        <div class="album-modal">
+          <h3>Move to Folder</h3>
+          <div class="album-move-list" id="albumMoveFolderList"></div>
+          <div class="album-modal-actions">
+            <button class="btn btn-secondary" id="albumMoveCancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
   </main>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -427,6 +501,7 @@
   <script src="js/music-gen.js"></script>
   <script src="js/magic-maker.js"></script>
   <script src="js/ai-touchup.js"></script>
+  <script src="js/album.js"></script>
   <script src="js/blog-generator.js"></script>
   <script src="js/social-posts.js"></script>
   <script src="js/app.js"></script>

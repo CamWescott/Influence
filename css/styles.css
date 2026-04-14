@@ -1582,3 +1582,246 @@ h1, h2, h3 {
 .magic-toast.error {
   background: #dc2626;
 }
+
+/* ============================================================
+   ALBUM PANEL
+   ============================================================ */
+
+/* Save-to-album button (teal accent, used across Photos & Videos panels) */
+.btn-album {
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-album:hover  { opacity: 0.88; transform: translateY(-1px); }
+.btn-album:active { transform: translateY(0); }
+
+/* Two-column layout: sidebar | main */
+.album-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .album-layout { grid-template-columns: 1fr; }
+}
+
+/* ---- Sidebar ---- */
+.album-sidebar {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.album-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.album-sidebar-head h3 { margin: 0; font-size: 15px; color: var(--ocean-deep); }
+
+.album-folder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.album-folder-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ink);
+  transition: background 0.12s;
+  position: relative;
+}
+.album-folder-item:hover { background: rgba(10,35,64,.06); }
+.album-folder-item.active { background: rgba(99,102,241,.12); color: #4f46e5; font-weight: 600; }
+.folder-icon  { font-size: 15px; flex-shrink: 0; }
+.folder-name  { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.folder-count { font-size: 11px; color: var(--ink-soft); background: rgba(10,35,64,.07); padding: 1px 6px; border-radius: 999px; }
+.folder-del-btn {
+  display: none;
+  background: none; border: none; cursor: pointer; color: var(--ink-soft);
+  font-size: 11px; padding: 2px 4px; border-radius: 4px;
+}
+.album-folder-item:hover .folder-del-btn { display: inline; }
+.folder-del-btn:hover { background: #fee2e2; color: #dc2626; }
+.folder-rename-input {
+  width: 100%; border: 1px solid #6366f1; border-radius: 4px; padding: 2px 6px; font: inherit; font-size: 13px;
+}
+
+/* Storage bar */
+.album-storage { margin-top: 16px; }
+.album-storage-track {
+  height: 6px; background: rgba(10,35,64,.1); border-radius: 3px; overflow: hidden; margin-bottom: 5px;
+}
+.album-storage-fill {
+  height: 100%; background: #0d9488; border-radius: 3px; transition: width 0.3s;
+}
+.album-storage-fill.warn { background: #f59e0b; }
+.album-storage-text { font-size: 11px; color: var(--ink-soft); }
+
+/* ---- Main area ---- */
+.album-main {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  min-height: 400px;
+}
+.album-main-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.album-main-head h3 { margin: 0; font-size: 17px; color: var(--ocean-deep); }
+
+/* ---- Item grid ---- */
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.album-card {
+  border-radius: var(--radius);
+  border: 1px solid rgba(10,35,64,.1);
+  overflow: hidden;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.album-card:hover { box-shadow: 0 4px 18px rgba(10,35,64,.14); transform: translateY(-2px); }
+
+.album-card-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #e0e7ef;
+  overflow: hidden;
+}
+.album-card-thumb img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.album-frame-badge {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(0,0,0,0.55); color: #fff;
+  font-size: 11px; padding: 2px 7px; border-radius: 999px;
+}
+
+.album-type-pill {
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  margin: 8px 10px 2px;
+  font-weight: 600;
+  width: fit-content;
+}
+.album-type-photo      { background: #dbeafe; color: #1d4ed8; }
+.album-type-slideshow  { background: #fce7f3; color: #9d174d; }
+.album-type-video-clip { background: #d1fae5; color: #065f46; }
+.album-type-reel       { background: #ede9fe; color: #4c1d95; }
+
+.album-card-info { padding: 4px 10px 6px; flex: 1; }
+.album-card-name {
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: text;
+}
+.album-card-name:hover { text-decoration: underline dotted; }
+.album-card-date { font-size: 11px; color: var(--ink-soft); margin: 0; }
+.album-card-rename {
+  width: 100%; border: 1px solid #6366f1; border-radius: 4px; padding: 1px 5px;
+  font: inherit; font-size: 13px; font-weight: 600;
+}
+
+.album-card-actions {
+  display: flex;
+  border-top: 1px solid rgba(10,35,64,.07);
+  background: #f1f5f9;
+}
+.album-action-btn {
+  flex: 1; background: none; border: none; border-right: 1px solid rgba(10,35,64,.07);
+  padding: 7px 4px; font-size: 11px; color: var(--ink-soft); cursor: pointer;
+  transition: background 0.12s, color 0.12s; white-space: nowrap;
+}
+.album-action-btn:last-child { border-right: none; }
+.album-action-btn:hover { background: rgba(10,35,64,.07); color: var(--ink); }
+.album-action-del:hover { background: #fee2e2; color: #dc2626; }
+
+/* ---- Empty state ---- */
+.album-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-soft);
+}
+.album-empty-icon { font-size: 48px; margin-bottom: 16px; }
+.album-empty p { margin: 4px 0; }
+
+/* ---- Modals (save + move) ---- */
+.album-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,35,64,.45);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.album-modal-overlay.visible { display: flex; }
+.album-modal {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 28px 28px 22px;
+  width: min(420px, 90vw);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.22);
+}
+.album-modal h3 { margin: 0 0 18px; color: var(--ocean-deep); font-size: 18px; }
+.album-modal-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
+.album-modal-input {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px 12px;
+  border: 2px solid rgba(10,35,64,.12);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 14px;
+  background: var(--cream);
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.album-modal-input:focus { outline: none; border-color: #6366f1; }
+.album-modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.album-modal-actions .btn { flex: 1; padding: 10px; }
+
+/* Move-to-folder list */
+.album-move-list { display: flex; flex-direction: column; gap: 8px; }
+.move-folder-btn {
+  background: #f8fafc; border: 1px solid rgba(10,35,64,.12); border-radius: var(--radius-sm);
+  padding: 10px 14px; font: inherit; font-size: 14px; text-align: left; cursor: pointer;
+  transition: background 0.12s;
+}
+.move-folder-btn:hover { background: #e0f2fe; color: #0369a1; }
