@@ -1,8 +1,8 @@
-// Cloud Function that proxies requests to the Anthropic Claude API.
+// Cloud Functions:
+//   claude     — proxies the Anthropic Claude API (key: ANTHROPIC_API_KEY)
+//   hfInpaint  — proxies Hugging Face SD inpainting  (key: HF_API_KEY)
 //
-// The Anthropic API key is stored as a Firebase secret named
-// ANTHROPIC_API_KEY (see README for setup). It never reaches the browser,
-// so test users can generate real Claude content without you exposing the key.
+// Keys are stored in Firebase Secret Manager and never reach the browser.
 
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
@@ -11,6 +11,7 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 setGlobalOptions({ region: "us-central1", maxInstances: 10 });
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
+const HF_API_KEY        = defineSecret("HF_API_KEY");
 
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_PROMPT_CHARS = 8000;
@@ -76,6 +77,104 @@ exports.claude = onRequest(
     } catch (err) {
       const elapsedMs = Date.now() - started;
       console.error("Function error", { elapsedMs, message: err && err.message });
+      res.status(500).json({ error: "Internal error" });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Hugging Face Stable Diffusion Inpainting proxy
+// Accepts: { image_b64: string, mask_b64: string, prompt: string }
+// Returns: { result: "data:image/jpeg;base64,..." }
+// ---------------------------------------------------------------------------
+const HF_MODEL_URL    = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting";
+const HF_MAX_RETRIES  = 4;
+const HF_MAX_B64_BYTES = 4 * 1024 * 1024; // 4 MB per image (512×512 PNG is ~350 KB)
+
+async function callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft) {
+  const res = await fetch(HF_MODEL_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + apiKey,
+      "Content-Type": "application/json",
+      "Accept": "image/png,image/jpeg,*/*",
+    },
+    body: JSON.stringify({
+      inputs: prompt,
+      parameters: {
+        image:               imageB64,
+        mask_image:          maskB64,
+        num_inference_steps: 25,
+        guidance_scale:      7.5,
+        strength:            0.99,
+      },
+    }),
+  });
+
+  // Model cold-start — wait the estimated time then retry
+  if (res.status === 503 && retriesLeft > 0) {
+    const body = await res.json().catch(function () { return {}; });
+    const waitMs = Math.min((body.estimated_time || 20) * 1000 + 2000, 35000);
+    console.log("HF model loading, waiting", waitMs + "ms,", retriesLeft, "retries left");
+    await new Promise(function (r) { setTimeout(r, waitMs); });
+    return callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft - 1);
+  }
+
+  return res;
+}
+
+exports.hfInpaint = onRequest(
+  {
+    secrets: [HF_API_KEY],
+    cors: true,
+    invoker: "public",
+    timeoutSeconds: 180,   // generous — HF cold starts can take 60s+
+    memory: "512MiB",
+  },
+  async (req, res) => {
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    if (req.method !== "POST")    { res.status(405).json({ error: "Method not allowed" }); return; }
+
+    const started = Date.now();
+    try {
+      const { image_b64, mask_b64, prompt } = req.body || {};
+
+      if (!image_b64 || !mask_b64 || !prompt) {
+        res.status(400).json({ error: "Missing image_b64, mask_b64, or prompt" });
+        return;
+      }
+      if (image_b64.length > HF_MAX_B64_BYTES || mask_b64.length > HF_MAX_B64_BYTES) {
+        res.status(400).json({ error: "Image too large" });
+        return;
+      }
+
+      console.log("HF inpaint start", { promptChars: prompt.length });
+
+      const upstream = await callHuggingFace(
+        image_b64, mask_b64,
+        String(prompt).slice(0, 500),
+        HF_API_KEY.value(),
+        HF_MAX_RETRIES
+      );
+
+      if (!upstream.ok) {
+        const errText = await upstream.text();
+        console.error("HF error", upstream.status, errText);
+        res.status(502).json({ error: "HF upstream error", status: upstream.status });
+        return;
+      }
+
+      const buffer   = await upstream.arrayBuffer();
+      const mimeType = upstream.headers.get("content-type") || "image/jpeg";
+      const b64      = Buffer.from(buffer).toString("base64");
+      const elapsedMs = Date.now() - started;
+
+      console.log("HF inpaint done", { elapsedMs, bytes: buffer.byteLength });
+      res.json({ result: "data:" + mimeType + ";base64," + b64 });
+
+    } catch (err) {
+      const elapsedMs = Date.now() - started;
+      console.error("HF function error", { elapsedMs, message: err && err.message });
       res.status(500).json({ error: "Internal error" });
     }
   }

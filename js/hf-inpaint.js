@@ -65,19 +65,47 @@
     }
   }
 
-  // ---- HF API call with cold-start retry ----
-  async function callHF(imageDataUrl, maskDataUrl, prompt, attemptsLeft) {
-    const token = getToken();
-    if (!token) return null;
-
-    // Convert to FIT_SIZE canvases
+  // ---- Prepare images: fit both to FIT_SIZE × FIT_SIZE ----
+  async function prepareImages(imageDataUrl, maskDataUrl) {
     const [imgSrc, maskSrc] = await Promise.all([
       dataUrlToCanvas(imageDataUrl),
       dataUrlToCanvas(maskDataUrl),
     ]);
     const imgFit  = fitCanvas(imgSrc);
     const maskFit = fitCanvas(maskSrc);
+    return { imgFit, maskFit };
+  }
 
+  // ---- Path 1: Cloud Function proxy (key stays on the server) ----
+  async function callProxy(imageDataUrl, maskDataUrl, prompt) {
+    const { imgFit, maskFit } = await prepareImages(imageDataUrl, maskDataUrl);
+    setStatus("Sending to AI\u2026");
+
+    const res = await fetch("/api/hf-inpaint", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image_b64: canvasToBase64(imgFit.canvas),
+        mask_b64:  canvasToBase64(maskFit.canvas),
+        prompt:    prompt,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(function () { return {}; });
+      throw new Error(body.error || "Proxy error " + res.status);
+    }
+
+    const data = await res.json();
+    return { resultDataUrl: data.result, fit: imgFit };
+  }
+
+  // ---- Path 2: Direct HF call with local token (fallback for local dev) ----
+  async function callDirect(imageDataUrl, maskDataUrl, prompt, attemptsLeft) {
+    const token = getToken();
+    if (!token) return null;
+
+    const { imgFit, maskFit } = await prepareImages(imageDataUrl, maskDataUrl);
     setStatus("Sending to Hugging Face\u2026");
 
     const res = await fetch(MODEL_URL, {
@@ -99,32 +127,44 @@
       }),
     });
 
-    // 503 = model cold-starting; wait then retry
     if (res.status === 503) {
       const body = await res.json().catch(function () { return {}; });
       if (attemptsLeft > 0) {
         const wait = Math.min((body.estimated_time || 20) * 1000 + 2000, 35000);
         setStatus("Warming up AI model\u2026 (~" + Math.round(wait / 1000) + "s)");
         await new Promise(function (r) { setTimeout(r, wait); });
-        return callHF(imageDataUrl, maskDataUrl, prompt, attemptsLeft - 1);
+        return callDirect(imageDataUrl, maskDataUrl, prompt, attemptsLeft - 1);
       }
       throw new Error("Model is still loading. Please try again in ~30 seconds.");
     }
-
     if (!res.ok) {
       const body = await res.json().catch(function () { return {}; });
-      // Friendly messages for common errors
       if (res.status === 401) throw new Error("Invalid API key. Check the key in AI Tools.");
-      if (res.status === 400) throw new Error("Model rejected the request: " + (body.error || res.status));
       throw new Error(body.error || "Hugging Face error " + res.status);
     }
 
-    // Success: blob → object URL
-    const blob = await res.blob();
-    return {
-      blobUrl: URL.createObjectURL(blob),
-      fit:     imgFit,   // we need this to un-letterbox the result
-    };
+    const blob    = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    return { resultDataUrl: blobUrl, fit: imgFit, isBlobUrl: true };
+  }
+
+  // ---- Render result back to W × H canvas ----
+  async function applyResult(result, W, H) {
+    setStatus("Applying result\u2026");
+    const { x, y, fitW, fitH } = result.fit;
+
+    const resultImg = await new Promise(function (res, rej) {
+      const img = new Image();
+      img.onload  = function () { res(img); };
+      img.onerror = rej;
+      img.src     = result.resultDataUrl;
+    });
+    if (result.isBlobUrl) URL.revokeObjectURL(result.resultDataUrl);
+
+    const out = document.createElement("canvas");
+    out.width = W; out.height = H;
+    out.getContext("2d").drawImage(resultImg, x, y, fitW, fitH, 0, 0, W, H);
+    return out.toDataURL("image/jpeg", 0.92);
   }
 
   // ---- Public edit function ----
@@ -132,29 +172,19 @@
     hasKey: function () { return !!getToken(); },
 
     edit: async function (imageDataUrl, maskDataUrl, prompt, W, H) {
-      const token = getToken();
-      if (!token) return null;   // no key → fall through to canvas fill
+      // 1. Try the Cloud Function proxy first (key never in browser).
+      try {
+        const result = await callProxy(imageDataUrl, maskDataUrl, prompt);
+        return await applyResult(result, W, H);
+      } catch (proxyErr) {
+        // Proxy not deployed or network error — fall through to direct call.
+        console.warn("HF proxy unavailable:", proxyErr.message);
+      }
 
-      const result = await callHF(imageDataUrl, maskDataUrl, prompt, MAX_RETRIES);
-      if (!result) return null;
-
-      setStatus("Applying result\u2026");
-
-      // Load the 512×512 result image
-      const resultImg = await new Promise(function (res, rej) {
-        const img = new Image();
-        img.onload  = function () { res(img); };
-        img.onerror = rej;
-        img.src     = result.blobUrl;
-      });
-      URL.revokeObjectURL(result.blobUrl);
-
-      // Extract only the letterboxed region, scale back to W × H
-      const { x, y, fitW, fitH } = result.fit;
-      const out = document.createElement("canvas");
-      out.width = W; out.height = H;
-      out.getContext("2d").drawImage(resultImg, x, y, fitW, fitH, 0, 0, W, H);
-      return out.toDataURL("image/jpeg", 0.92);
+      // 2. Fall back to direct HF call using the locally-stored token.
+      const result = await callDirect(imageDataUrl, maskDataUrl, prompt, MAX_RETRIES);
+      if (!result) return null;   // no local token either → canvas fill
+      return await applyResult(result, W, H);
     },
   };
 

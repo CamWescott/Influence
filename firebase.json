@@ -20,6 +20,13 @@
         }
       },
       {
+        "source": "/api/hf-inpaint",
+        "function": {
+          "functionId": "hfInpaint",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/app",
         "destination": "/app.html"
       },
