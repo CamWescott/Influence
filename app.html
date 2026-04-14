@@ -56,6 +56,10 @@
                 placeholder="e.g. &ldquo;jazz&rdquo;, &ldquo;tropical vibes&rdquo;, &ldquo;Lion King themed&rdquo;&hellip;" />
               <div class="music-controls">
                 <button class="btn btn-primary" id="photoMusicPlay">&#9654; Generate &amp; Play</button>
+                <label class="btn btn-secondary music-upload-label" title="Play your own MP3, WAV, etc.">
+                  &#128194; Upload file
+                  <input type="file" id="photoMusicFile" accept="audio/*" hidden />
+                </label>
                 <button class="btn btn-secondary" id="photoMusicStop">&#9632; Stop</button>
                 <label class="music-vol">&#128266; <input type="range" id="photoMusicVol" min="0" max="1" step="0.05" value="0.7" /></label>
               </div>
@@ -213,6 +217,10 @@
                 placeholder="e.g. &ldquo;jazz&rdquo;, &ldquo;tropical vibes&rdquo;&hellip;" />
               <div class="music-controls">
                 <button class="btn btn-primary" id="videoMusicPlay">&#9654; Generate &amp; Play</button>
+                <label class="btn btn-secondary music-upload-label" title="Play your own MP3, WAV, etc.">
+                  &#128194; Upload file
+                  <input type="file" id="videoMusicFile" accept="audio/*" hidden />
+                </label>
                 <button class="btn btn-secondary" id="videoMusicStop">&#9632; Stop</button>
                 <label class="music-vol">&#128266; <input type="range" id="videoMusicVol" min="0" max="1" step="0.05" value="0.7" /></label>
               </div>

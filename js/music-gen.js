@@ -499,38 +499,74 @@
   window.WanderlustMusic = { start, stop, setVolume, isPlaying };
 
   // ---- UI wiring — called for both panels ----
-  function wirePanel(promptId, playId, stopId, volId, statusId) {
-    const promptEl = document.getElementById(promptId);
-    const playBtn  = document.getElementById(playId);
-    const stopBtn  = document.getElementById(stopId);
-    const volEl    = document.getElementById(volId);
-    const statusEl = document.getElementById(statusId);
+  // fileInputId is optional: if provided, that <input type="file"> lets the
+  // user pick a real audio file which plays instead of the synthesiser.
+  function wirePanel(promptId, playId, stopId, volId, statusId, fileInputId) {
+    const promptEl  = document.getElementById(promptId);
+    const playBtn   = document.getElementById(playId);
+    const stopBtn   = document.getElementById(stopId);
+    const volEl     = document.getElementById(volId);
+    const statusEl  = document.getElementById(statusId);
+    const fileInput = fileInputId ? document.getElementById(fileInputId) : null;
     if (!playBtn) return;
 
+    let fileAudio = null;
+    let fileUrl   = null;
+
+    function setStatus(text, playing) {
+      if (!statusEl) return;
+      statusEl.textContent = text;
+      statusEl.classList.toggle('playing', !!playing);
+    }
+
+    function stopFile() {
+      if (fileAudio) { fileAudio.pause(); fileAudio.src = ''; fileAudio = null; }
+      if (fileUrl)   { URL.revokeObjectURL(fileUrl); fileUrl = null; }
+    }
+
+    // Generate & Play synthesiser
     playBtn.addEventListener('click', function () {
+      stopFile();
       const prompt = (promptEl && promptEl.value.trim()) || 'ambient travel music';
       const label  = start(prompt);
-      if (statusEl) {
-        statusEl.textContent = '\u266b ' + label;
-        statusEl.classList.add('playing');
-      }
+      setStatus('\u266b ' + label, true);
     });
 
+    // Upload a real audio file
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        const file = fileInput.files[0];
+        if (!file) return;
+        stop();      // stop synthesiser
+        stopFile();  // stop previous file
+        fileUrl   = URL.createObjectURL(file);
+        fileAudio = new Audio(fileUrl);
+        fileAudio.loop   = true;
+        fileAudio.volume = volEl ? parseFloat(volEl.value) : 0.7;
+        fileAudio.play().catch(function () {});
+        const name = file.name.length > 28 ? file.name.slice(0, 25) + '\u2026' : file.name;
+        setStatus('\u266b ' + name, true);
+        fileInput.value = ''; // allow re-selecting the same file
+      });
+    }
+
+    // Stop everything
     stopBtn.addEventListener('click', function () {
       stop();
-      if (statusEl) {
-        statusEl.textContent = 'Not playing';
-        statusEl.classList.remove('playing');
-      }
+      stopFile();
+      setStatus('Not playing', false);
     });
 
+    // Volume — controls both synthesiser and file player
     if (volEl) {
       volEl.addEventListener('input', function () {
-        setVolume(parseFloat(volEl.value));
+        const v = parseFloat(volEl.value);
+        setVolume(v);
+        if (fileAudio) fileAudio.volume = v;
       });
     }
   }
 
-  wirePanel('photoMusicPrompt', 'photoMusicPlay', 'photoMusicStop', 'photoMusicVol', 'photoMusicStatus');
-  wirePanel('videoMusicPrompt', 'videoMusicPlay', 'videoMusicStop', 'videoMusicVol', 'videoMusicStatus');
+  wirePanel('photoMusicPrompt', 'photoMusicPlay', 'photoMusicStop', 'photoMusicVol', 'photoMusicStatus', 'photoMusicFile');
+  wirePanel('videoMusicPrompt', 'videoMusicPlay', 'videoMusicStop', 'videoMusicVol', 'videoMusicStatus', 'videoMusicFile');
 })();

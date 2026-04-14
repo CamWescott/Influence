@@ -1676,6 +1676,7 @@ h1, h2, h3 {
   flex-wrap: wrap;
 }
 .music-controls .btn { padding: 9px 14px; font-size: 13px; }
+.music-upload-label { cursor: pointer; user-select: none; }
 .music-vol {
   display: inline-flex;
   align-items: center;
