@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Influence{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="nav-brand" href="{{ url_for('index') }}">
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      Influence
+    </a>
+    <div class="nav-tabs">
+      <a href="{{ url_for('index') }}"
+         class="nav-tab {% if request.endpoint == 'index' %}active{% endif %}">
+        Home
+      </a>
+      <a href="#" class="nav-tab">Explore</a>
+      <a href="{{ url_for('album') }}"
+         class="nav-tab {% if request.endpoint == 'album' %}active{% endif %}">
+        Album
+      </a>
+      <a href="#" class="nav-tab">Profile</a>
+    </div>
+    <div class="nav-end">
+      <button class="btn-create">+ Create</button>
+    </div>
+  </nav>
+
+  <div class="page-body">
+    {% block content %}{% endblock %}
+  </div>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

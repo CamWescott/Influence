@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Influence – Album{% endblock %}
+
+{% block content %}
+<div class="album-layout">
+
+  <!-- ───── Sidebar ───── -->
+  <aside class="album-sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Albums</span>
+      <button class="btn-icon-sm" title="New folder" onclick="App.showCreateFolderModal()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      </button>
+    </div>
+
+    <ul class="folder-list" id="folderList">
+      <li class="folder-item active" id="allMediaItem"
+          onclick="App.selectFolder(null, 'All Media')">
+        <div class="folder-item-main">
+          <svg class="fi-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+          <span class="folder-name">All Media</span>
+        </div>
+      </li>
+      <!-- dynamic folders injected here -->
+    </ul>
+  </aside>
+
+  <!-- ───── Main content ───── -->
+  <main class="album-main" id="albumMain">
+
+    <!-- Top bar -->
+    <div class="album-topbar">
+      <div class="topbar-left">
+        <h2 class="current-folder-title" id="currentFolderTitle">All Media</h2>
+        <span class="media-count" id="mediaCount"></span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-outline" id="downloadFolderBtn" style="display:none"
+                onclick="App.downloadCurrentFolder()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Download Folder
+        </button>
+        <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          Upload
+        </button>
+      </div>
+    </div>
+
+    <!-- Type filters -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-type="all"    onclick="App.filterByType('all')">All</button>
+      <button class="filter-btn"        data-type="photo"  onclick="App.filterByType('photo')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        Photos
+      </button>
+      <button class="filter-btn"        data-type="slideshow" onclick="App.filterByType('slideshow')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/></svg>
+        Slideshows
+      </button>
+      <button class="filter-btn"        data-type="video" onclick="App.filterByType('video')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        Videos
+      </button>
+      <button class="filter-btn"        data-type="reel" onclick="App.filterByType('reel')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+        Reels
+      </button>
+    </div>
+
+    <!-- Upload progress -->
+    <div id="uploadProgressContainer" style="display:none"></div>
+
+    <!-- Loading indicator -->
+    <div class="loading-indicator" id="loadingIndicator" style="display:none">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Media grid -->
+    <div class="media-grid" id="mediaGrid"></div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState" style="display:none">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+      </svg>
+      <p>No media here yet.</p>
+      <p class="empty-sub">Upload photos, slideshows, videos, or reels to get started.</p>
+      <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Upload now</button>
+    </div>
+
+    <!-- Drag overlay -->
+    <div class="drag-overlay" id="dragOverlay" style="display:none">
+      <div class="drag-overlay-inner">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        <p>Drop files to upload</p>
+      </div>
+    </div>
+
+  </main><!-- end .album-main -->
+</div><!-- end .album-layout -->
+
+<!-- Hidden file input -->
+<input type="file" id="fileInput" multiple
+       accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.bmp,.tiff,.mp4,.mov,.avi,.webm,.mkv,.m4v"
+       style="display:none" />
+
+<!-- ═══════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════ -->
+
+<!-- Create Folder -->
+<div class="modal-backdrop" id="createFolderModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>New Folder</h3>
+      <button class="modal-close" onclick="App.hideModal('createFolderModal')">×</button>
+    </div>
+    <form id="createFolderForm" class="modal-body">
+      <label class="field-label" for="folderNameInput">Folder name</label>
+      <input class="text-input" id="folderNameInput" type="text"
+             placeholder="e.g. Summer Trip 2024" maxlength="100" autocomplete="off" />
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="App.hideModal('createFolderModal')">Cancel</button>
+        <button type="submit" class="btn-primary">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Rename Folder -->
+<div class="modal-backdrop" id="renameFolderModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Rename Folder</h3>
+      <button class="modal-close" onclick="App.hideModal('renameFolderModal')">×</button>
+    </div>
+    <form id="renameFolderForm" class="modal-body">
+      <label class="field-label" for="renameFolderInput">New name</label>
+      <input class="text-input" id="renameFolderInput" type="text" maxlength="100" autocomplete="off" />
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="App.hideModal('renameFolderModal')">Cancel</button>
+        <button type="submit" class="btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-backdrop" id="uploadModal">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <h3>Upload Media</h3>
+      <button class="modal-close" onclick="App.hideModal('uploadModal')">×</button>
+    </div>
+    <form id="uploadForm" class="modal-body">
+      <div id="uploadFileList" class="upload-file-list"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="field-label" for="uploadFolderSelect">Save to folder</label>
+          <select class="select-input" id="uploadFolderSelect">
+            <option value="">Root (no folder)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="field-label" for="uploadTypeSelect">Media type</label>
+          <select class="select-input" id="uploadTypeSelect">
+            <option value="auto">Auto-detect</option>
+            <option value="photo">Photo</option>
+            <option value="slideshow">Slideshow</option>
+            <option value="video">Video</option>
+            <option value="reel">Reel</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="App.hideModal('uploadModal')">Cancel</button>
+        <button type="submit" class="btn-primary" id="uploadSubmitBtn">Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Move Modal -->
+<div class="modal-backdrop" id="moveModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Move to Folder</h3>
+      <button class="modal-close" onclick="App.hideModal('moveModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <ul class="move-folder-list" id="moveFolderList"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="modal-backdrop lightbox-backdrop" id="lightboxModal">
+  <div class="lightbox-box">
+    <div class="lightbox-header">
+      <span class="lightbox-title" id="lightboxTitle"></span>
+      <div class="lightbox-header-actions">
+        <button class="btn-icon-light" id="lightboxDownload" title="Download">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        </button>
+        <button class="btn-icon-light" onclick="App.hideModal('lightboxModal')" title="Close">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="lightbox-content" id="lightboxContent"></div>
+    <button class="lightbox-nav prev" id="lightboxPrev">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg>
+    </button>
+    <button class="lightbox-nav next" id="lightboxNext">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/album.js') }}"></script>
+{% endblock %}
