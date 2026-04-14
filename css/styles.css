@@ -1730,6 +1730,9 @@ h1, h2, h3 {
 .magic-toast.error {
   background: #dc2626;
 }
+.magic-toast.success {
+  background: #0d9488;
+}
 
 /* ============================================================
    ALBUM PANEL

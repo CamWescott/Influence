@@ -398,7 +398,7 @@
     };
     addItem(item);
     pendingSave = null;
-    showToast('"' + item.name + '" saved to ' + folderName(folderId));
+    showToast('\u2713 \u201c' + item.name + '\u201d saved to ' + folderName(folderId), false, true);
   }
 
   function folderName(id) {
@@ -457,16 +457,17 @@
   }
 
   // ---- Toast ----
-  function showToast(msg, isErr) {
+  function showToast(msg, isErr, isSuccess) {
     let t = document.getElementById("magicToast");
     if (!t) {
       t = document.createElement("div"); t.id = "magicToast"; t.className = "magic-toast";
       document.body.appendChild(t);
     }
     t.textContent = msg;
-    t.className = "magic-toast" + (isErr ? " error" : "") + " visible";
+    t.className = "magic-toast" +
+      (isErr ? " error" : isSuccess ? " success" : "") + " visible";
     clearTimeout(t._timer);
-    t._timer = setTimeout(function () { t.classList.remove("visible"); }, 3500);
+    t._timer = setTimeout(function () { t.classList.remove("visible"); }, isSuccess ? 3000 : 3500);
   }
 
   // ---- Wire dialog buttons ----
@@ -522,6 +523,7 @@
       if (!opts || !opts.frames || !opts.frames.length) {
         showToast("Nothing to save yet!", true); return;
       }
+      showToast('\uD83D\uDCBE Saving to Albums\u2026');
       openSaveDialog(opts);
     });
   }
