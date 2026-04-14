@@ -151,10 +151,43 @@
   // ---- Prompt parser ----
 
   // Theme overrides checked first (most specific — movie/cultural references)
+  // melSeq: 32-step array of absolute MIDI notes (null = rest). When present,
+  //   replaces random melody generation so the theme is actually recognisable.
+  // root overrides the genre default so bass/pad are in the right key.
+  const N = null; // shorthand for rests in melSeq arrays
   const THEMES = [
-    { words: ['lion king', 'hakuna matata', 'circle of life', 'simba'],       genre: 'tribal' },
-    { words: ['pirates of the caribbean', 'pirate', 'high seas', 'sailing'],  genre: 'folk',    scale: 'dorian' },
-    { words: ['star wars', 'space', 'galaxy', 'cosmic', 'sci-fi', 'scifi'],   genre: 'ambient', scale: 'lydian' },
+    {
+      words: ['lion king', 'hakuna matata', 'circle of life', 'simba'],
+      genre: 'tribal', root: 48, bpm: 100, mVol: 0.22,
+      // Circle of Life chant: E D G E  A G E D / E . D C  E G E .
+      melSeq: [64,N,62,N, 67,N,64,N, 69,N,67,N, 64,N,62,N,
+               64,N,N,N,  62,N,60,N, 64,N,67,N, 64,N,N,N],
+    },
+    {
+      words: ['spider-man', 'spiderman', 'spider man', 'peter parker', 'web slinger', 'web crawler'],
+      genre: 'folk', scale: 'minor', root: 45, bpm: 112, mVol: 0.22,
+      // 1967 Spider-Man theme: E E G E / D D B D  (Spider-Man Spider-Man / does-what-ev-er)
+      melSeq: [64,N,N,N, 64,N,N,N, 67,N,N,N, 64,N,N,N,
+               62,N,N,N, 62,N,N,N, 59,N,N,N, 64,N,N,N],
+    },
+    {
+      words: ['pirates of the caribbean', 'pirate', 'high seas', 'sailing'],
+      genre: 'folk', scale: 'dorian', root: 45, bpm: 108, mVol: 0.22,
+      // He's a Pirate run: C D Eb F  G F Eb D / C D Eb F  G F Eb .
+      melSeq: [60,N,62,N, 63,N,65,N, 67,N,65,N, 63,N,62,N,
+               60,N,62,N, 63,N,65,N, 67,N,65,N, 63,N,N,N],
+    },
+    {
+      words: ['star wars', 'darth vader', 'force', 'jedi', 'lightsaber'],
+      genre: 'classical', scale: 'minor', root: 48, bpm: 108, mVol: 0.24,
+      // Main theme: G G G  Eb(below) Bb(below) / G Eb(below)  Bb(below) G
+      melSeq: [67,N,N,N, 67,N,N,N, 67,N,N,N, 63,N,N,N,
+               58,N,N,N, 67,N,N,N, 63,N,N,N, 58,N,67,N],
+    },
+    {
+      words: ['space', 'galaxy', 'cosmic', 'sci-fi', 'scifi'],
+      genre: 'ambient', scale: 'lydian',
+    },
     { words: ['christmas', 'jingle', 'holiday', 'festive', 'santa', 'xmas'],  genre: 'waltz',   scale: 'major'  },
     { words: ['halloween', 'horror', 'scary', 'spooky', 'haunted'],           genre: 'ambient', scale: 'phrygian' },
     { words: ['hawaii', 'luau', 'polynesian', 'aloha', 'ukulele'],            genre: 'reggae',  scale: 'major'  },
@@ -198,7 +231,15 @@
       if (t.words.some(w => p.includes(w))) {
         profile    = Object.assign({}, G[t.genre] || G.default);
         genreLabel = t.genre;
-        if (t.scale) profile.scale = t.scale;
+        if (t.scale)  profile.scale  = t.scale;
+        if (t.root)   profile.root   = t.root;
+        if (t.bpm)    profile.bpm    = t.bpm;
+        if (t.mVol)   profile.mVol   = t.mVol;
+        if (t.melSeq) {
+          profile.melSeq  = t.melSeq;
+          profile.melody  = true;
+          profile.melDur  = 3.6; // hold each note closer to a quarter note
+        }
         break;
       }
     }
@@ -352,6 +393,9 @@
   // Builds a 32-step (2-bar) sequence of MIDI notes / nulls.
   // On strong beats it lands on the chord root; other steps use scale tones.
   function makeMelPat(profile) {
+    // Hardcoded theme melody takes priority over random generation.
+    if (profile.melSeq && profile.melSeq.length >= 32) return profile.melSeq.slice();
+
     const sc   = SCALES[profile.scale] || SCALES.major;
     const prog = PROGRESSIONS[profile.scale] || PROGRESSIONS.major;
     const root = profile.root + 12; // melody an octave above pad root
@@ -405,7 +449,7 @@
     if (p.melody && p.mVol > 0) {
       const idx = ((b % 2) * STEPS + s) % melPat.length;
       const n   = melPat[idx];
-      if (n !== null) melNote(hz(n), t, sDur * 1.7, p.melType, p.mVol);
+      if (n !== null) melNote(hz(n), t, sDur * (p.melDur || 1.7), p.melType, p.mVol);
     }
   }
 
