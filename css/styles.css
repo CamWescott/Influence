@@ -468,20 +468,20 @@ h1, h2, h3 {
 
 .filter-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
 }
 .filter-btn {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
-  padding: 6px 6px 8px;
+  gap: 3px;
+  padding: 4px 4px 6px;
   border-radius: var(--radius-sm);
   border: 2px solid rgba(10, 35, 64, 0.1);
   background: var(--sky-soft);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--ocean-deep);
   cursor: pointer;
   transition: all 0.15s;
@@ -498,8 +498,8 @@ h1, h2, h3 {
 }
 .filter-btn .filter-thumb {
   width: 100%;
-  height: 56px;
-  border-radius: 6px;
+  height: 36px;
+  border-radius: 4px;
   background: linear-gradient(135deg, #cfefff 0%, #8ed3f7 100%);
   display: block;
 }
@@ -518,7 +518,7 @@ h1, h2, h3 {
   font-size: 12px;
   font-weight: 700;
   color: var(--ink-soft);
-  margin: 10px 0;
+  margin: 6px 0;
 }
 .slider input { width: 100%; }
 
