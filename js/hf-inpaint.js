@@ -5,14 +5,16 @@
 (function () {
   "use strict";
 
-  const TOKEN_KEY  = "wanderlust_hf_token";
-  const MODEL_URL  = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting";
-  const FIT_SIZE   = 512;   // SD 1.5 inpainting optimal input resolution
-  const MAX_RETRIES = 4;    // cold-start retries
+  const TOKEN_KEY   = "wanderlust_hf_token";
+  const BUILT_IN_TOKEN = "";   // intentionally empty — key is stored in localStorage via the UI
+  const MODEL_URL   = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting";
+  const FIT_SIZE    = 512;   // SD 1.5 inpainting optimal input resolution
+  const MAX_RETRIES = 4;     // cold-start retries
 
   // ---- Token storage ----
-  function getToken()       { return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
-  function saveToken(t)     { localStorage.setItem(TOKEN_KEY, t.trim()); }
+  // localStorage entry (set via the UI) takes priority; BUILT_IN_TOKEN is the fallback.
+  function getToken()   { return (localStorage.getItem(TOKEN_KEY) || BUILT_IN_TOKEN || "").trim(); }
+  function saveToken(t) { localStorage.setItem(TOKEN_KEY, t.trim()); }
 
   // ---- Canvas helpers ----
 
