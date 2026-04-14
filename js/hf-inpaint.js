@@ -7,8 +7,12 @@
 
   const TOKEN_KEY   = "wanderlust_hf_token";
   const BUILT_IN_TOKEN = "";   // intentionally empty — key is stored in localStorage via the UI
-  const MODEL_URL   = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-inpainting";
-  const FIT_SIZE    = 512;   // SD 1.5 inpainting optimal input resolution
+  // FLUX.1-Fill-dev/schnell are HF's own hosted inpainting models (SD inpainting not on free tier).
+  const MODEL_URLS  = [
+    "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-Fill-dev",
+    "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-Fill-schnell",
+  ];
+  const FIT_SIZE    = 512;
   const MAX_RETRIES = 4;     // cold-start retries
 
   // ---- Token storage ----
@@ -101,14 +105,16 @@
   }
 
   // ---- Path 2: Direct HF call with local token (fallback for local dev) ----
-  async function callDirect(imageDataUrl, maskDataUrl, prompt, attemptsLeft) {
+  async function callDirect(imageDataUrl, maskDataUrl, prompt, attemptsLeft, modelIndex) {
     const token = getToken();
     if (!token) return null;
 
+    const idx      = modelIndex || 0;
+    const modelUrl = MODEL_URLS[idx];
     const { imgFit, maskFit } = await prepareImages(imageDataUrl, maskDataUrl);
     setStatus("Sending to Hugging Face\u2026");
 
-    const res = await fetch(MODEL_URL, {
+    const res = await fetch(modelUrl, {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + token,
@@ -120,12 +126,21 @@
         parameters: {
           image:               canvasToBase64(imgFit.canvas),
           mask_image:          canvasToBase64(maskFit.canvas),
-          num_inference_steps: 25,
-          guidance_scale:      7.5,
-          strength:            0.99,
+          num_inference_steps: 28,
+          guidance_scale:      3.5,
         },
       }),
     });
+
+    // Model not on this provider — try next in list
+    if (res.status === 400) {
+      const body = await res.json().catch(function () { return {}; });
+      const nextIdx = idx + 1;
+      if (nextIdx < MODEL_URLS.length) {
+        return callDirect(imageDataUrl, maskDataUrl, prompt, attemptsLeft, nextIdx);
+      }
+      throw new Error(body.error || "No supported inpainting model available. Try again later.");
+    }
 
     if (res.status === 503) {
       const body = await res.json().catch(function () { return {}; });
@@ -133,7 +148,7 @@
         const wait = Math.min((body.estimated_time || 20) * 1000 + 2000, 35000);
         setStatus("Warming up AI model\u2026 (~" + Math.round(wait / 1000) + "s)");
         await new Promise(function (r) { setTimeout(r, wait); });
-        return callDirect(imageDataUrl, maskDataUrl, prompt, attemptsLeft - 1);
+        return callDirect(imageDataUrl, maskDataUrl, prompt, attemptsLeft - 1, idx);
       }
       throw new Error("Model is still loading. Please try again in ~30 seconds.");
     }

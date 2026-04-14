@@ -87,12 +87,18 @@ exports.claude = onRequest(
 // Accepts: { image_b64: string, mask_b64: string, prompt: string }
 // Returns: { result: "data:image/jpeg;base64,..." }
 // ---------------------------------------------------------------------------
-const HF_MODEL_URL    = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-inpainting";
+// FLUX.1-Fill-dev is HF's own hosted inpainting model (FLUX family).
+// Fallback chain: Fill-dev → Fill-schnell → give up (SD models not on hf-inference free tier)
+const HF_MODELS = [
+  "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-Fill-dev",
+  "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-Fill-schnell",
+];
 const HF_MAX_RETRIES  = 4;
 const HF_MAX_B64_BYTES = 4 * 1024 * 1024; // 4 MB per image (512×512 PNG is ~350 KB)
 
-async function callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft) {
-  const res = await fetch(HF_MODEL_URL, {
+async function callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft, modelIndex) {
+  const modelUrl = HF_MODELS[modelIndex || 0];
+  const res = await fetch(modelUrl, {
     method: "POST",
     headers: {
       "Authorization": "Bearer " + apiKey,
@@ -104,12 +110,22 @@ async function callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft) {
       parameters: {
         image:               imageB64,
         mask_image:          maskB64,
-        num_inference_steps: 25,
-        guidance_scale:      7.5,
-        strength:            0.99,
+        num_inference_steps: 28,
+        guidance_scale:      3.5,
       },
     }),
   });
+
+  // Model not on this provider — try next model in the list
+  if (res.status === 400) {
+    const body = await res.json().catch(function () { return {}; });
+    const nextIndex = (modelIndex || 0) + 1;
+    if (nextIndex < HF_MODELS.length) {
+      console.log("Model not supported, trying fallback model", nextIndex);
+      return callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft, nextIndex);
+    }
+    throw new Error(body.error || "No supported inpainting model found on hf-inference provider");
+  }
 
   // Model cold-start — wait the estimated time then retry
   if (res.status === 503 && retriesLeft > 0) {
@@ -117,7 +133,7 @@ async function callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft) {
     const waitMs = Math.min((body.estimated_time || 20) * 1000 + 2000, 35000);
     console.log("HF model loading, waiting", waitMs + "ms,", retriesLeft, "retries left");
     await new Promise(function (r) { setTimeout(r, waitMs); });
-    return callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft - 1);
+    return callHuggingFace(imageB64, maskB64, prompt, apiKey, retriesLeft - 1, modelIndex);
   }
 
   return res;
