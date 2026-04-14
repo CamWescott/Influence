@@ -36,6 +36,13 @@
   const addClipBtn  = document.getElementById("addClipBtn");
   const playReelBtn = document.getElementById("playReelBtn");
 
+  // Playback scrubber
+  const scrubberTrack    = document.getElementById("videoScrubberTrack");
+  const scrubberFill     = document.getElementById("videoScrubberFill");
+  const scrubberThumb    = document.getElementById("videoScrubberThumb");
+  const currentTimeEl    = document.getElementById("videoCurrentTime");
+  const durationDisplayEl = document.getElementById("videoDurationDisplay");
+
   // Voice-over (unchanged IDs from original)
   const voScript = document.getElementById("voScript");
   const voiceSel = document.getElementById("voVoice");
@@ -327,6 +334,81 @@
     clip.filter = { b: p.b, c: p.c, s: p.s, w: p.w, bl: p.bl };
     syncControls();
     renderDeck();
+  }
+
+  // ---- Scrubber helpers ----
+  function fmtTime(secs) {
+    if (!isFinite(secs) || secs < 0) return "0:00";
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function updateScrubber() {
+    const dur = vid.duration;
+    const cur = vid.currentTime;
+    if (!isFinite(dur) || dur === 0) {
+      if (scrubberFill)  scrubberFill.style.width = "0%";
+      if (scrubberThumb) scrubberThumb.style.left = "0%";
+      if (currentTimeEl)     currentTimeEl.textContent     = "0:00";
+      if (durationDisplayEl) durationDisplayEl.textContent = "0:00";
+      return;
+    }
+    const pct = (cur / dur) * 100;
+    if (scrubberFill)  scrubberFill.style.width = pct + "%";
+    if (scrubberThumb) scrubberThumb.style.left  = pct + "%";
+    if (currentTimeEl)     currentTimeEl.textContent     = fmtTime(cur);
+    if (durationDisplayEl) durationDisplayEl.textContent = fmtTime(dur);
+  }
+
+  vid.addEventListener("timeupdate",  updateScrubber);
+  vid.addEventListener("loadedmetadata", updateScrubber);
+  vid.addEventListener("durationchange", updateScrubber);
+
+  // Scrubber seek: click and drag on the track.
+  if (scrubberTrack) {
+    let isScrubbing = false;
+
+    function seekToPointer(e) {
+      const dur = vid.duration;
+      if (!isFinite(dur) || dur === 0) return;
+      const rect = scrubberTrack.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const frac = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      vid.currentTime = frac * dur;
+      updateScrubber();
+    }
+
+    scrubberTrack.addEventListener("mousedown", function (e) {
+      isScrubbing = true;
+      scrubberTrack.classList.add("scrubbing");
+      seekToPointer(e);
+      e.preventDefault();
+    });
+    window.addEventListener("mousemove", function (e) {
+      if (!isScrubbing) return;
+      seekToPointer(e);
+    });
+    window.addEventListener("mouseup", function () {
+      if (!isScrubbing) return;
+      isScrubbing = false;
+      scrubberTrack.classList.remove("scrubbing");
+    });
+    scrubberTrack.addEventListener("touchstart", function (e) {
+      isScrubbing = true;
+      scrubberTrack.classList.add("scrubbing");
+      seekToPointer(e);
+      e.preventDefault();
+    }, { passive: false });
+    window.addEventListener("touchmove", function (e) {
+      if (!isScrubbing) return;
+      seekToPointer(e);
+    });
+    window.addEventListener("touchend", function () {
+      if (!isScrubbing) return;
+      isScrubbing = false;
+      scrubberTrack.classList.remove("scrubbing");
+    });
   }
 
   // ---- Playback helpers ----

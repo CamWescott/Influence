@@ -216,6 +216,14 @@
         <div class="video-stage">
           <canvas id="videoCanvas" width="800" height="450"></canvas>
           <div class="video-empty" id="videoEmpty">Your video will appear here.</div>
+          <div class="video-playback-bar" id="videoPlaybackBar">
+            <span class="video-time" id="videoCurrentTime">0:00</span>
+            <div class="video-scrubber-track" id="videoScrubberTrack">
+              <div class="video-scrubber-fill" id="videoScrubberFill"></div>
+              <div class="video-scrubber-thumb" id="videoScrubberThumb"></div>
+            </div>
+            <span class="video-time" id="videoDurationDisplay">0:00</span>
+          </div>
         </div>
 
         <aside class="video-tools">
