@@ -43,6 +43,7 @@
   const scrubberThumb    = document.getElementById("videoScrubberThumb");
   const currentTimeEl    = document.getElementById("videoCurrentTime");
   const durationDisplayEl = document.getElementById("videoDurationDisplay");
+  const vidVolSlider     = document.getElementById("vidVolume");
 
   // Voice-over (unchanged IDs from original)
   const voScript = document.getElementById("voScript");
@@ -416,6 +417,13 @@
       if (!isScrubbing) return;
       isScrubbing = false;
       scrubberTrack.classList.remove("scrubbing");
+    });
+  }
+
+  // ---- Video volume ----
+  if (vidVolSlider) {
+    vidVolSlider.addEventListener("input", function () {
+      vid.volume = parseFloat(vidVolSlider.value);
     });
   }
 

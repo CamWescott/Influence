@@ -192,12 +192,31 @@
 
       <!-- 3-column layout: upload zone | canvas stage | tools sidebar -->
       <div class="video-editor-layout">
-        <div class="upload-zone" id="videoDrop">
-          <input type="file" id="videoInput" accept="video/*" multiple hidden />
-          <div class="upload-inner">
-            <div class="upload-ic">&#127916;</div>
-            <p><strong>Drop videos</strong> or click to upload</p>
-            <span class="muted">MP4, MOV, WEBM &mdash; pick multiple for a reel</span>
+        <div class="video-left">
+          <div class="upload-zone" id="videoDrop">
+            <input type="file" id="videoInput" accept="video/*" multiple hidden />
+            <div class="upload-inner">
+              <div class="upload-ic">&#127916;</div>
+              <p><strong>Drop videos</strong> or click to upload</p>
+              <span class="muted">MP4, MOV, WEBM &mdash; pick multiple for a reel</span>
+            </div>
+          </div>
+
+          <!-- Background music (lives under the upload zone) -->
+          <div class="music-card">
+            <div class="music-head">
+              <h3>&#127925; Background Music</h3>
+              <span class="music-status muted" id="videoMusicStatus">Not playing</span>
+            </div>
+            <div class="music-body">
+              <input type="text" class="music-prompt" id="videoMusicPrompt"
+                placeholder="e.g. &ldquo;jazz&rdquo;, &ldquo;tropical vibes&rdquo;&hellip;" />
+              <div class="music-controls">
+                <button class="btn btn-primary" id="videoMusicPlay">&#9654; Generate &amp; Play</button>
+                <button class="btn btn-secondary" id="videoMusicStop">&#9632; Stop</button>
+                <label class="music-vol">&#128266; <input type="range" id="videoMusicVol" min="0" max="1" step="0.05" value="0.7" /></label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -212,6 +231,7 @@
               <div class="video-scrubber-thumb" id="videoScrubberThumb"></div>
             </div>
             <span class="video-time" id="videoDurationDisplay">0:00</span>
+            <label class="vid-vol-label" title="Video volume">&#128266; <input type="range" id="vidVolume" min="0" max="1" step="0.05" value="1" /></label>
           </div>
         </div>
 

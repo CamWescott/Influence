@@ -1088,11 +1088,21 @@ h1, h2, h3 {
 /* ---------- Video editor layout (mirrors .photo-layout) ---------- */
 .video-editor-layout {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 20px;
+  grid-template-columns: 230px minmax(0, 1fr) 1fr;
+  gap: 16px;
+  align-items: start;
 }
 @media (max-width: 1100px) {
   .video-editor-layout { grid-template-columns: 1fr; }
+}
+
+.video-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.video-left .music-card {
+  margin-top: 0;
 }
 
 .video-stage {
@@ -1152,6 +1162,19 @@ h1, h2, h3 {
   transition: background 0.15s;
 }
 .video-play-btn:hover { background: var(--ocean-deep); }
+
+.vid-vol-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  flex-shrink: 0;
+  color: var(--ink-soft);
+}
+.vid-vol-label input[type="range"] {
+  width: 64px;
+  cursor: pointer;
+}
 
 .video-time {
   font-size: 12px;
