@@ -44,8 +44,22 @@
         </div>
 
         <div class="photo-stage">
-          <canvas id="photoCanvas" width="800" height="500"></canvas>
+          <div class="photo-canvas-wrap">
+            <canvas id="photoCanvas" width="800" height="500"></canvas>
+            <canvas id="touchupOverlay" width="800" height="500" class="touchup-overlay"></canvas>
+          </div>
           <div class="photo-empty" id="photoEmpty">Your photo will appear here.</div>
+          <div class="touchup-modal" id="aiTouchupModal">
+            <p class="touchup-modal-hint">What should I do here?</p>
+            <input type="text" id="aiTouchupInput" class="touchup-input" placeholder="e.g. remove this person, replace the sky, blur the background&hellip;" />
+            <div class="touchup-modal-actions">
+              <button class="btn btn-primary" id="aiTouchupApply">Apply Edit</button>
+              <button class="btn btn-secondary" id="aiTouchupCancel">Cancel</button>
+            </div>
+          </div>
+          <div class="touchup-processing" id="aiTouchupProcessing">
+            <span class="touchup-spinner"></span> Applying edit&hellip;
+          </div>
         </div>
 
         <aside class="photo-tools">
@@ -111,6 +125,10 @@
             <button class="btn btn-secondary" id="photoReset">Reset</button>
             <button class="btn btn-primary" id="photoDownload">Download</button>
           </div>
+
+          <h3>AI Tools</h3>
+          <button class="btn btn-ai-touchup" id="aiTouchupBtn">&#129668; AI Touchup</button>
+          <p class="muted tiny">Draw around any object to erase or transform it with AI.</p>
         </aside>
       </div>
 
@@ -408,6 +426,7 @@
   <script src="js/video-editor.js"></script>
   <script src="js/music-gen.js"></script>
   <script src="js/magic-maker.js"></script>
+  <script src="js/ai-touchup.js"></script>
   <script src="js/blog-generator.js"></script>
   <script src="js/social-posts.js"></script>
   <script src="js/app.js"></script>

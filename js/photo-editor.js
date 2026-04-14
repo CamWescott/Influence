@@ -765,9 +765,19 @@
   // Initial render (empty state).
   renderDeck();
 
-  // Public API for Magic Maker
+  // Public API for Magic Maker and AI Touchup
   window.PhotoMagic = {
     getSlides: function () { return slides; },
+    getActiveSlide: function () { return activeSlide(); },
+    getActiveIndex: function () { return activeIndex; },
+    updateActiveSlide: function (newSlide) {
+      if (activeIndex < 0 || activeIndex >= slides.length) return;
+      slides[activeIndex] = newSlide;
+      syncControls();
+      render();
+      renderFilterThumbnails();
+      renderDeck();
+    },
     setSlides: function (newSlides) {
       slides = newSlides;
       activeIndex = 0;

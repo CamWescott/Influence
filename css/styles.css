@@ -424,7 +424,7 @@ h1, h2, h3 {
   color: var(--ink-soft);
   font-style: italic;
 }
-#photoCanvas.loaded + .photo-empty { display: none; }
+/* .photo-empty visibility is managed by JS in render() */
 
 .photo-tools {
   background: var(--white);
@@ -514,6 +514,124 @@ h1, h2, h3 {
 
 #photoCanvas.loaded { cursor: grab; }
 #photoCanvas.dragging { cursor: grabbing; }
+
+/* ---- AI Touchup overlay canvas ---- */
+/* Wrap the photo canvas + overlay so the overlay can use inset:0 and
+   cover the canvas exactly — the wrap shrink-wraps to the canvas size. */
+.photo-canvas-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;           /* no baseline gap below inline canvas */
+  border-radius: var(--radius-sm);
+  max-width: 100%;
+}
+.touchup-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;     /* JS toggles this to "auto" when lasso mode is on */
+  border-radius: var(--radius-sm);
+}
+
+/* ---- AI Touchup button ---- */
+.btn-ai-touchup {
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  text-align: center;
+  margin-top: 6px;
+}
+.btn-ai-touchup:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-ai-touchup:active { transform: translateY(0); }
+.btn-ai-touchup.active {
+  background: linear-gradient(135deg, #dc2626 0%, #9333ea 100%);
+}
+
+/* ---- Touchup prompt modal (lives inside .photo-stage, absolute) ---- */
+.touchup-modal {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  width: min(480px, calc(100% - 32px));
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+  padding: 16px 18px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 20;
+}
+.touchup-modal.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.touchup-modal-hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+.touchup-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid rgba(10,35,64,.14);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 14px;
+  background: var(--cream);
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.touchup-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+.touchup-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.touchup-modal-actions .btn { flex: 1; padding: 9px; font-size: 13px; }
+
+/* ---- Processing overlay ---- */
+.touchup-processing {
+  display: none;
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10,35,64,0.82);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  align-items: center;
+  gap: 10px;
+  z-index: 20;
+  pointer-events: none;
+}
+.touchup-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- Text overlay controls ---------- */
 .text-input {
