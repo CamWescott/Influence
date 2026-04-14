@@ -9,7 +9,6 @@
   const input = document.getElementById("photoInput");
   const canvas = document.getElementById("photoCanvas");
   const emptyMsg = document.getElementById("photoEmpty");
-  const suggestionsBox = document.getElementById("photoSuggestions");
   const ctx = canvas.getContext("2d");
 
   const sliders = {
@@ -291,10 +290,6 @@
       activeIndex = 0;
       canvas.classList.remove("loaded");
       if (emptyMsg) emptyMsg.style.display = "";
-      if (suggestionsBox) {
-        suggestionsBox.innerHTML =
-          '<p class="muted small">Upload a photo to see AI suggestions.</p>';
-      }
       // Reset filter thumbs to the empty hatched state.
       panel.querySelectorAll(".filter-thumb").forEach(function (t) {
         t.classList.add("empty");
@@ -376,9 +371,6 @@
             render();
             renderFilterThumbnails();
             renderDeck();
-            if (startedEmpty) {
-              suggestEdits(slides[activeIndex].image);
-            }
           }
         };
         img.src = e.target.result;
@@ -393,52 +385,6 @@
   panel.querySelectorAll(".filter-thumb").forEach(function (t) {
     t.classList.add("empty");
   });
-
-  // Look at average brightness / color balance to suggest edits.
-  function suggestEdits(img) {
-    const s = document.createElement("canvas");
-    const sctx = s.getContext("2d");
-    s.width = 60;
-    s.height = 60;
-    sctx.drawImage(img, 0, 0, 60, 60);
-    const data = sctx.getImageData(0, 0, 60, 60).data;
-
-    let r = 0, g = 0, b = 0;
-    for (let i = 0; i < data.length; i += 4) {
-      r += data[i];
-      g += data[i + 1];
-      b += data[i + 2];
-    }
-    const n = data.length / 4;
-    r /= n; g /= n; b /= n;
-    const bright = (r + g + b) / 3;
-
-    const tips = [];
-    if (bright < 90) {
-      tips.push("Photo looks <strong>dark</strong> — try raising brightness to ~120 or apply the <em>Dreamy</em> filter.");
-    } else if (bright > 180) {
-      tips.push("Photo looks <strong>overexposed</strong> — pull brightness back to ~90 and boost contrast.");
-    } else {
-      tips.push("Exposure looks good. Try the <em>Vivid</em> filter to make the colors pop.");
-    }
-
-    if (b > r + 15) {
-      tips.push("Lots of blue — nice for beaches/pools. The <em>Ocean</em> filter will emphasize it.");
-    } else if (r > b + 15) {
-      tips.push("Warm reds/oranges dominate — <em>Sunset</em> filter will make it glow.");
-    } else {
-      tips.push("Balanced color — <em>Tropical</em> adds a vacation feel.");
-    }
-
-    if (g > r && g > b) {
-      tips.push("Lots of greens (jungle / nature shot). Try saturation ~130 and a hint of warmth.");
-    }
-
-    tips.push("Add a short caption from the Text Overlay panel — then drag it into place on the photo.");
-
-    suggestionsBox.innerHTML =
-      "<ul><li>" + tips.join("</li><li>") + "</li></ul>";
-  }
 
   // ---- Text drag on main canvas ----
   // If the caption has content, any mousedown on the canvas grabs the
